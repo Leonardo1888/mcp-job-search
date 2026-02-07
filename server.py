@@ -1,10 +1,17 @@
 from fastmcp import FastMCP
 
-mcp = FastMCP("My MCP Server")
+mcp = FastMCP(
+    name="HelpfulAssistant",
+    instructions="""
+        This server provides data analysis tools.
+        Call getAverage() calculate the average of two integers.
+    """,
+)
 
 @mcp.tool
-def greet(name: str) -> str:
-	return f"Hello, i hope you are fine {name}!"
+def getAverage(n1: int, n2: int) -> str:
+	avg = (n1 + n2) / 2
+	return f"The average of {n1} and {n2} is {avg}."
 
 if __name__ == "__main__":
 	mcp.run()
