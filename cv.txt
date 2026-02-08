@@ -1,29 +1,4 @@
 Curriculum Vitae
-
-Sviluppatore con 3 anni di esperienza nella creazione di applicazioni web moderne e scalabili. 
-Specializzato in JavaScript e nell'ottimizzazione di database.
-
 COMPETENZE TECNICHE:
-
     Linguaggi: JavaScript (ES6+), Python, SQL.
     Frontend: React, HTML5, Tailwind CSS.
-    Backend: Node.js, MongoDB.
-    Strumenti: Git, AWS (EC2, S3).
-
-ESPERIENZA LAVORATIVA
-
-Web Developer | Tech Solutions Srl 2021 – Presente
-    Sviluppo di dashboard interattive in React per clienti enterprise.
-    Miglioramento delle performance backend del 20%.
-
-Junior Developer | Startup Innovativa 2019 – 2021
-    Sviluppo e manutenzione di API RESTful in Node.js.
-    Gestione dei test automatizzati per garantire la stabilità del codice.
-
-FORMAZIONE
-    Laurea Triennale in Informatica | Università La Sapienza | 2019
-    Certificazione AWS Certified Cloud Practitioner | 2022
-
-LINGUE
-    Italiano: Madrelingua.
-    Inglese: Livello B2 (Tecnico).
