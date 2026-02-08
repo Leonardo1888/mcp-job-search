@@ -1,28 +1,28 @@
 import asyncio
-from fastmcp import Client, FastMCP
-
-# In-memory server (ideal for testing)
-server = FastMCP("TestServer")
-client = Client(server)
-
-# HTTP server
-client = Client("https://example.com/mcp")
-
-# Local Python script
-client = Client("server.py")
+import sys
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
 async def main():
-    async with client:
-        # Basic server interaction
-        await client.ping()
-
-        # List available operations
-        tools = await client.list_tools()
-        resources = await client.list_resources()
-        prompts = await client.list_prompts()
-
-        # Execute operations
-        result = await client.call_tool("getAverage", {"n1": 10, "n2": 20})
-        print(result)
+    server_params = StdioServerParameters(
+        command="python",
+        args=["server.py"],
+        env=None
+    )
+    
+    # Questo cattura stderr del server
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            
+            result = await session.call_tool(
+                "extract_skills_from_cv",
+                arguments={
+                    "cv_filename": "cv.txt",
+                    "confidence_threshold": 0.6
+                }
+            )
+            
+            print(result.content[0].text)
 
 asyncio.run(main())
