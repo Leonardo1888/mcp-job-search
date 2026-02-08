@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Dict, Any, List
 import json
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # logging, visto che il server è asincrono, è meglio usare logging invece di print per evitare confusione nei messaggi
 logging.basicConfig(
@@ -26,8 +29,8 @@ LIGHTCAST_API_BASE = "https://api.lightcast.io"
 LIGHTCAST_AUTH_URL = "https://auth.emsicloud.com/connect/token"
 
 # Credenziali
-CLIENT_ID = "emsibg_milan"  
-CLIENT_SECRET = "QfgsNL4v"  
+CLIENT_ID = os.getenv("LIGHTCAST_CLIENT_ID")  
+CLIENT_SECRET = os.getenv("LIGHTCAST_CLIENT_SECRET")  
 
 
 class LightcastClient:

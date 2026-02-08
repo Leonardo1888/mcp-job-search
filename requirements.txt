@@ -1,0 +1,79 @@
+# ============================================================================
+# MCP Server 1 - Skill Extractor
+# Requirements file for Python dependencies
+# ============================================================================
+
+# ====================================
+# CORE DEPENDENCIES (REQUIRED)
+# ====================================
+
+# FastMCP - Framework per MCP servers
+fastmcp>=3.0.0b2
+
+# MCP SDK - Protocol implementation
+mcp>=1.0.0
+
+# HTTP Client - Per chiamate API async
+httpx>=0.27.0
+
+# Environment variables management
+python-dotenv>=1.0.0
+
+# ====================================
+# OPTIONAL: DOCUMENT PROCESSING
+# ====================================
+
+# Per leggere PDF
+# PyPDF2>=3.0.0
+# pdfplumber>=0.10.0
+
+# Per leggere DOCX
+# python-docx>=1.1.0
+
+# ====================================
+# OPTIONAL: DEVELOPMENT & TESTING
+# ====================================
+# Decommenta per sviluppo e testing
+
+# Testing framework
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# pytest-cov>=4.1.0
+
+# Code quality
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.5.0
+# pylint>=3.0.0
+
+# ====================================
+# OPTIONAL: LOGGING & MONITORING
+# ====================================
+# Decommenta se vuoi logging avanzato
+
+# Rich console output
+# rich>=13.0.0
+
+# Structured logging
+# structlog>=23.0.0
+
+# ====================================
+# INSTALLATION NOTES
+# ====================================
+# 
+# Installazione base:
+#   pip install -r requirements.txt
+#
+# Installazione con PDF/DOCX support:
+#   1. Decommenta le librerie sopra
+#   2. pip install -r requirements.txt
+#
+# Installazione development:
+#   1. Decommenta le librerie di testing
+#   2. pip install -r requirements.txt
+#
+# Ambiente virtuale consigliato:
+#   python -m venv .venv
+#   source .venv/bin/activate  # Linux/Mac
+#   .venv\Scripts\activate     # Windows
+#   pip install -r requirements.txt
