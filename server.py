@@ -254,22 +254,6 @@ async def extract_skills_from_cv(
             "error": f"Errore nell'estrazione delle competenze: {str(e)}"
         }, indent=2)
 
-@mcp.tool()
-def sum_numbers(a: float, b: float) -> str:
-    """
-    Somma due numeri
-    
-    Args:
-        a: Primo numero
-        b: Secondo numero
-    
-    Returns:
-        Risultato della somma in formato JSON
-    """
-    result = a + b
-    logging.info(f"Calcolando: {a} + {b} = {result}")
-    
-    return f"{{\"operation\": \"sum\", \"a\": {a}, \"b\": {b}, \"result\": {result}}}"
 
 @mcp.tool()
 async def get_skill_details(skill_ids: List[str]) -> str:
