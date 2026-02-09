@@ -1,6 +1,11 @@
 """
 MCP Server 1 - Analisi del Profilo ed Estrazione Dati
 Estrae competenze da un CV usando l'API Lightcast Skills
+Tools:
+    extract_skills_from_cv
+    get_skill_details
+    find_related_skills_for_cv
+    analyze_cv_complete
 """
 
 from mcp.server.fastmcp import FastMCP
@@ -131,8 +136,7 @@ class LightcastClient:
         }
         
         payload = {
-            "ids": skill_ids,
-            "fields": ["id", "name", "type", "category", "description"]
+            "ids": skill_ids
         }
         
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -286,7 +290,7 @@ async def get_skill_details(skill_ids: List[str]) -> str:
 
 @mcp.tool()
 async def find_related_skills_for_cv(
-    cv_filename: str = "cv.txt",
+    cv_filename,
     limit_per_skill: int = 5
 ) -> str:
     """
