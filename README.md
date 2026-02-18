@@ -62,7 +62,7 @@ MCP-SERVER/
 
 ```bash
 # 1. Clone the repo
-    git clone https://github.com/Leonardo1888/mcp-job-search
+git clone https://github.com/Leonardo1888/mcp-job-search
 cd MCP-SERVER
 
 # 2. Create and activate virtual environment
