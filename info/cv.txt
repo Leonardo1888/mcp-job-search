@@ -1,0 +1,8 @@
+Curriculum Vitae
+
+Nome: Mario Rossi
+Istruzione: Università degli studi di Bergamo
+COMPETENZE TECNICHE:
+    Linguaggi: JavaScript, Python, SQL, Java.
+    Frontend: React, HTML5, HTML, CSS.
+	Lingua: Italiano, Inglese

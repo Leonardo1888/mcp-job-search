@@ -1,3 +1,5 @@
+# This client is for testing API's withouth having to use LLM.
+
 import asyncio
 import sys
 from mcp import ClientSession, StdioServerParameters
@@ -67,14 +69,12 @@ async def main():
     """Esegue tutti i test in sequenza"""
     try:
         #await TestExtract_skills_from_cv()
-        #print("\n" + "="*50 + "\n")
         
         #await TestGet_skill_details()
-        #print("\n" + "="*50 + "\n")
-        
+    
         #await TestFind_related_skills_for_cv()
-        #print("\n" + "="*50 + "\n")
         
+        print("\n" + "="*50 + "\n")
         await TestAnalyze_cv_complete()
         
     except Exception as e:

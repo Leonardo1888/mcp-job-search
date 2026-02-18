@@ -1,4 +1,0 @@
-Curriculum Vitae
-COMPETENZE TECNICHE:
-    Linguaggi: JavaScript (ES6+), Python, SQL.
-    Frontend: React, HTML5, Tailwind CSS.
