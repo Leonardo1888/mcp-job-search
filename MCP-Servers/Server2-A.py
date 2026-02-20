@@ -111,36 +111,31 @@ async def search_jobs_by_skills(
     country: str = "it",
 ) -> str:
     """
-    PRIMARY job search tool. Always call this FIRST, before search_jobs_by_title.
+    PRIMARY job search tool. Always call this FIRST when asked to search for a job.
     Searches Adzuna using the candidate's most distinctive skills as keywords.
 
     How to build the query from a CV skill list:
     - `what`    -> pick the SINGLE most important/distinctive skill
                    (e.g. "Python", "React", "Machine Learning", "Kubernetes").
-                   ONE keyword only — Adzuna requires this in every result.
+                   ONE keyword only. Adzuna requires this in every result.
                    Do NOT use generic terms like "programming" or "development".
-    - `what_or` -> pick 2–4 complementary skills, space-separated
+    - `what_or` -> pick 2-4 complementary skills, space-separated
                    (e.g. "SQL PostgreSQL MongoDB").
                    At least one of these must appear in the result.
                    Do NOT paste the full CV skill list here.
 
     When to use this tool:
-    - Always as the first job search step after extracting CV skills.
-
-    When NOT to use this tool:
-    - Do not retry with different skills if this returns 0 results.
-      Instead, immediately call search_jobs_by_title as fallback.
+    - Always use saerch_jobs_by_skills as the first job search step after extracting CV skills.
 
     Args:
         what:    Single primary skill keyword, required in every result.
-        what_or: 2–4 secondary skill keywords, space-separated.
+        what_or: 2-4 secondary skill keywords, space-separated.
         country: ISO 3166-1 alpha-2 country code (default: 'it' for Italy).
                  Examples: 'gb', 'us', 'de', 'fr', 'es'.
 
     Returns:
         JSON with total_job_offers_found and a list of jobOffers (title, company,
         location, description, url).
-        If total_job_offers_found is 0, call search_jobs_by_title immediately.
     """
     try:
         data = await adzuna_client.search_by_skills(what, what_or, country)
@@ -149,7 +144,7 @@ async def search_jobs_by_skills(
         logging.error(f"search_jobs_by_skills failed: {e}")
         return json.dumps({"status": "error", "error": str(e)}, indent=2)
 
-
+'''
 @mcp2.tool()
 async def search_jobs_by_title(
     job_title: str,
@@ -194,7 +189,7 @@ async def search_jobs_by_title(
     except Exception as e:
         logging.error(f"search_jobs_by_title failed: {e}")
         return json.dumps({"status": "error", "error": str(e)}, indent=2)
-
+'''
 
 #  Entrypoint 
 

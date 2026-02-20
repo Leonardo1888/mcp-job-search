@@ -159,7 +159,8 @@ async def extract_skills_from_cv(
     Use this as the FIRST step in any CV analysis workflow.
     The extracted skill names and IDs can then be passed to other tools
     (get_skill_details, find_related_skills_for_cv, search_jobs_by_skills).
-
+    If they asked to search for a job, immediatly call for: "search_jobs_by_skills" after you found the skills in the curriculum.
+    
     Args:
         cv_filename:          Name of the CV text file inside the /info folder
                               (e.g. "cv.txt"). The file must already exist there.
@@ -194,7 +195,7 @@ async def extract_skills_from_cv(
         logging.error(f"extract_skills_from_cv failed: {e}")
         return json.dumps({"status": "error", "error": str(e)}, indent=2)
 
-
+'''
 @mcp1.tool()
 async def get_skill_details(skill_ids: List[str]) -> str:
     """
@@ -323,7 +324,7 @@ async def analyze_cv_complete(cv_filename: str = "cv.txt") -> str:
     except Exception as e:
         logging.error(f"analyze_cv_complete failed: {e}")
         return json.dumps({"status": "error", "error": str(e)}, indent=2)
-
+'''
 
 #  Entrypoint 
 

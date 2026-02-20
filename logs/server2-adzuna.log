@@ -18,3 +18,30 @@
 2026-02-18 18:40:37 [INFO] Processing request of type CallToolRequest
 2026-02-18 18:40:38 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=Python+SQL+Java "HTTP/1.1 200 OK"
 2026-02-18 18:40:38 [INFO] [skills] Offerte trovate: 10
+2026-02-20 15:17:26 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:20:15 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:22:31 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:22:53 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:26:39 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:29:58 [INFO] Processing request of type CallToolRequest
+2026-02-20 16:29:59 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=Python+SQL+JavaScript "HTTP/1.1 200 OK"
+2026-02-20 16:29:59 [INFO] [skills] Job offers found: 10
+2026-02-20 16:30:20 [INFO] Processing request of type CallToolRequest
+2026-02-20 16:30:21 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=JavaScript+Python+SQL+Java "HTTP/1.1 200 OK"
+2026-02-20 16:30:21 [INFO] [skills] Job offers found: 10
+2026-02-20 16:36:05 [INFO] Processing request of type CallToolRequest
+2026-02-20 16:36:06 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=JavaScript+HTML+CSS "HTTP/1.1 200 OK"
+2026-02-20 16:36:06 [INFO] [skills] Job offers found: 10
+2026-02-20 17:00:36 [INFO] Processing request of type ListToolsRequest
+2026-02-20 17:00:52 [INFO] Processing request of type ListToolsRequest
+2026-02-20 17:10:15 [INFO] Processing request of type ListToolsRequest
+2026-02-20 17:13:14 [INFO] Processing request of type ListToolsRequest
+2026-02-20 17:16:53 [INFO] Processing request of type CallToolRequest
+2026-02-20 17:16:54 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=Python&what_or=React.js+SQL "HTTP/1.1 200 OK"
+2026-02-20 17:16:54 [INFO] [skills] Job offers found: 10
+2026-02-20 17:19:33 [INFO] Processing request of type CallToolRequest
+2026-02-20 17:19:34 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=Python&what_or=SQL+PostgreSQL+MongoDB "HTTP/1.1 200 OK"
+2026-02-20 17:19:34 [INFO] [skills] Job offers found: 10
+2026-02-20 17:22:28 [INFO] Processing request of type CallToolRequest
+2026-02-20 17:22:29 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=Test+Engineer&what_or=Torino+Milano+Palermo "HTTP/1.1 200 OK"
+2026-02-20 17:22:29 [INFO] [skills] Job offers found: 10

@@ -20,3 +20,43 @@
 2026-02-18 18:40:11,259 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
 2026-02-18 18:40:11,260 [INFO] Competenze estratte correttamente. Sono: 9 skills.
 2026-02-18 18:40:11,260 [INFO] Le skill sono: {'status': 'success', 'cv_filename': 'cv.txt', 'total_skills_found': 9, 'skills': [{'id': 'KSDJCA4E89LB98JAZ7LZ', 'name': 'React.js (Javascript Library)', 'confidence': 1.0, 'type': 'Specialized Skill'}, {'id': 'KS125LS6N7WP4S6SFTCK', 'name': 'Python (Programming Language)', 'confidence': 1.0, 'type': 'Specialized Skill'}, {'id': 'KS440W865GC4VRBW6LJP', 'name': 'SQL (Programming Language)', 'confidence': 1.0, 'type': 'Specialized Skill'}, {'id': 'KS1244J76BBG2CTNYHYR', 'name': 'Front End Design', 'confidence': 1.0, 'type': 'Specialized Skill'}, {'id': 'KS1200578T5QCYT0Z98G', 'name': 'HyperText Markup Language (HTML)', 'confidence': 1.0, 'type': 'Specialized Skill'}, {'id': 'KS120RM619V18NJXTHV1', 'name': 'HTML5', 'confidence': 1.0, 'type': 'Specialized Skill'}, {'id': 'KS121F45VPV8C9W3QFYH', 'name': 'Cascading Style Sheets (CSS)', 'confidence': 1.0, 'type': 'Specialized Skill'}, {'id': 'KS1200771D9CR9LB4MWW', 'name': 'JavaScript (Programming Language)', 'confidence': 1.0, 'type': 'Specialized Skill'}, {'id': 'KS120076FGP5WGWYMP0F', 'name': 'Java (Programming Language)', 'confidence': 0.9999990463256836, 'type': 'Specialized Skill'}]}
+2026-02-20 15:17:26 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:20:15 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:22:30 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:22:53 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:26:39 [INFO] Processing request of type ListToolsRequest
+2026-02-20 16:29:14 [INFO] Processing request of type CallToolRequest
+2026-02-20 16:29:14 [INFO] Requesting new Lightcast access token
+2026-02-20 16:29:14 [INFO] HTTP Request: POST https://auth.emsicloud.com/connect/token "HTTP/1.1 200 OK"
+2026-02-20 16:29:14 [INFO] Access token obtained successfully
+2026-02-20 16:29:15 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-02-20 16:29:16 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/skills "HTTP/1.1 200 OK"
+2026-02-20 16:29:16 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/related "HTTP/1.1 200 OK"
+2026-02-20 16:29:16 [INFO] analyze_cv_complete: 9 skills from 'cv.txt'
+2026-02-20 16:32:32 [INFO] Processing request of type CallToolRequest
+2026-02-20 16:32:32 [INFO] CV loaded: cv.txt
+2026-02-20 16:32:33 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-02-20 16:32:33 [INFO] Skills extracted: 9 (threshold=0.6)
+2026-02-20 16:47:19 [INFO] Processing request of type CallToolRequest
+2026-02-20 16:47:19 [INFO] CV loaded: cv.txt
+2026-02-20 16:47:19 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-02-20 16:47:19 [INFO] Skills extracted: 9 (threshold=0.6)
+2026-02-20 16:50:14 [INFO] Processing request of type CallToolRequest
+2026-02-20 16:50:14 [INFO] CV loaded: cv.txt
+2026-02-20 16:50:15 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-02-20 16:50:15 [INFO] Skills extracted: 9 (threshold=0.6)
+2026-02-20 17:00:35 [INFO] Processing request of type ListToolsRequest
+2026-02-20 17:00:52 [INFO] Processing request of type ListToolsRequest
+2026-02-20 17:10:14 [INFO] Processing request of type ListToolsRequest
+2026-02-20 17:13:14 [INFO] Processing request of type ListToolsRequest
+2026-02-20 17:16:35 [INFO] Processing request of type CallToolRequest
+2026-02-20 17:16:35 [INFO] CV loaded: cv.txt
+2026-02-20 17:16:35 [INFO] Requesting new Lightcast access token
+2026-02-20 17:16:36 [INFO] HTTP Request: POST https://auth.emsicloud.com/connect/token "HTTP/1.1 200 OK"
+2026-02-20 17:16:36 [INFO] Access token obtained successfully
+2026-02-20 17:16:36 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-02-20 17:16:36 [INFO] Skills extracted: 9 (threshold=0.6)
+2026-02-20 17:16:53 [INFO] Processing request of type CallToolRequest
+2026-02-20 17:16:53 [INFO] CV loaded: cv.txt
+2026-02-20 17:16:53 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-02-20 17:16:53 [INFO] Skills extracted: 9 (threshold=0.6)
