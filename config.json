@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "skill-extractor": {
+      "command": "python3",
+      "args": ["MCP-Servers/Server1-LC.py"],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    },
+    "job-matcher": {
+      "command": "python3",
+      "args": ["MCP-Servers/Server2-A.py"],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    },
+    "job-map-renderer": {
+      "type": "streamable-http",
+      "url": "https://mcp-google-maps.onrender.com/mcp"
+    }
+  }
+}
