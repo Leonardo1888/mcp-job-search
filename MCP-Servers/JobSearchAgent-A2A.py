@@ -1,30 +1,28 @@
 """
 A2A Job Search Agent
-Chiama i server MCP direttamente via STDIO, usando il corretto Python SDK MCP.
+Orchestrates the full job search pipeline via A2A protocol.
 
-Questo server:
-- È un MCP server registrato in config.json
-- Espone UN tool: search_jobs_complete
-- Chiama DIRETTAMENTE i server MCP locali via STDIO:
-   - skill-extractor (Server1-LC.py), il server che cerca le skill tramite le LightCast API
-   - job-matcher (Server2-A.py), il server che cerca le offerte di lavoro tramite Adzuna API
-- Chiama il server remoto su Render (job-map-renderer), il server che utilizza le Google Maps API per mostrare una mappa
+Pipeline:
+  1. Extract skills from CV  →  Server1-LC.py  (STDIO)
+  2. Search jobs by skills   →  Server2-A.py   (STDIO)
+  3. Geocode missing coords  →  Nominatim API  (HTTP, free)
+  4. Render map              →  Server3-Maps.py (streamable-http MCP)
 """
 
 import os
+import re
 import json
 import logging
 import httpx
 import asyncio
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, List
 from datetime import datetime
 
 from mcp.server.fastmcp import FastMCP
-
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-
+from mcp.client.streamable_http import streamablehttp_client
 from dotenv import load_dotenv
 
 # ============ SETUP ============
@@ -43,14 +41,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# creazione del server MCP per A2A
 a2a_server = FastMCP("job-search-agent")
-
 logger.info("=== Job Search Agent (A2A) Server Initialized ===")
 
 # ============ CONFIGURAZIONE ============
 
-# Percorsi ai server MCP locali
 SKILL_EXTRACTOR_PARAMS = StdioServerParameters(
     command="python3",
     args=[str(ROOT / "MCP-Servers" / "Server1-LC.py")],
@@ -65,132 +60,186 @@ JOB_MATCHER_PARAMS = StdioServerParameters(
 
 JOB_MAP_RENDERER_URL = "https://mcp-google-maps.onrender.com/mcp"
 
-logger.info(f"Configured:")
-logger.info(f"  - Skill Extractor: python3 {ROOT / 'MCP-Servers' / 'Server1-LC.py'}")
-logger.info(f"  - Job Matcher: python3 {ROOT / 'MCP-Servers' / 'Server2-A.py'}")
+logger.info(f"  - Skill Extractor: {SKILL_EXTRACTOR_PARAMS.args}")
+logger.info(f"  - Job Matcher: {JOB_MATCHER_PARAMS.args}")
 logger.info(f"  - Job Map Renderer: {JOB_MAP_RENDERER_URL}")
 
-# ============ MCP CLIENT VIA STDIO ============
+
+# ============ MCP CLIENT HELPERS ============
 
 async def call_skill_extractor_tool(cv_text: str = "", cv_filename: str = "") -> Dict[str, Any]:
-    """
-    Chiama extract_skills_from_cv tramite STDIO usando il pattern corretto Python SDK.
-    
-    Pattern corretto:
-        async with stdio_client(server_params) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                result = await session.call_tool(...)
-    """
+    """Calls extract_skills_from_cv on Server1-LC.py via STDIO."""
     logger.info("A2A: Calling skill-extractor via STDIO")
-
     try:
         async with stdio_client(SKILL_EXTRACTOR_PARAMS) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()
-
                 result = await session.call_tool(
                     "extract_skills_from_cv",
                     arguments={
-                        "cv_text": cv_text if cv_text else "",
-                        "cv_filename": cv_filename if cv_filename else "cv.txt",
+                        "cv_text": cv_text or "",
+                        "cv_filename": cv_filename or "cv.txt",
                         "confidence_threshold": 0.6,
                     },
                 )
-
-                # Il risultato è una lista di content block; il primo è TextContent
-                raw_text = result.content[0].text
+                raw = result.content[0].text
                 try:
-                    parsed = json.loads(raw_text)
+                    parsed = json.loads(raw)
                 except json.JSONDecodeError:
-                    parsed = {"status": "error", "error": f"Invalid JSON from skill-extractor: {raw_text}"}
-
-                skills = parsed.get("skills", [])
-                logger.info(f"A2A: Extracted {len(skills)} skills")
+                    parsed = {"status": "error", "error": f"Invalid JSON: {raw}"}
+                logger.info(f"A2A: Extracted {len(parsed.get('skills', []))} skills")
                 return parsed
-
     except Exception as e:
-        logger.error(f"A2A: Error calling skill-extractor: {str(e)}")
-        return {
-            "status": "error",
-            "error": f"Failed to extract skills: {str(e)}",
-        }
+        logger.error(f"A2A: skill-extractor error: {e}")
+        return {"status": "error", "error": str(e)}
 
 
 async def call_job_matcher_tool(what: str, what_or: str, country: str = "it") -> Dict[str, Any]:
-    """
-    Chiama search_jobs_by_skills tramite STDIO usando il pattern corretto Python SDK.
-    """
-    logger.info(f"A2A: Calling job-matcher via STDIO (what={what})")
-
+    """Calls search_jobs_by_skills on Server2-A.py via STDIO."""
+    logger.info(f"A2A: Calling job-matcher via STDIO (what={what}, what_or={what_or})")
     try:
         async with stdio_client(JOB_MATCHER_PARAMS) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()
-
                 result = await session.call_tool(
                     "search_jobs_by_skills",
-                    arguments={
-                        "what": what,
-                        "what_or": what_or,
-                        "country": country,
-                    },
+                    arguments={"what": what, "what_or": what_or, "country": country},
                 )
-
-                raw_text = result.content[0].text
+                raw = result.content[0].text
                 try:
-                    parsed = json.loads(raw_text)
+                    parsed = json.loads(raw)
                 except json.JSONDecodeError:
-                    parsed = {"status": "error", "error": f"Invalid JSON from job-matcher: {raw_text}"}
-
-                jobs = parsed.get("jobOffers", [])
-                logger.info(f"A2A: Found {len(jobs)} job offers")
+                    parsed = {"status": "error", "error": f"Invalid JSON: {raw}"}
+                logger.info(f"A2A: Found {len(parsed.get('jobOffers', []))} jobs")
                 return parsed
-
     except Exception as e:
-        logger.error(f"A2A: Error calling job-matcher: {str(e)}")
-        return {
-            "status": "error",
-            "error": f"Failed to search jobs: {str(e)}",
-        }
+        logger.error(f"A2A: job-matcher error: {e}")
+        return {"status": "error", "error": str(e)}
 
 
-async def call_map_renderer_tool(locations: List[Dict[str, Any]]) -> Dict[str, Any]:
+async def call_map_renderer_tool(jobs: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Chiama il server remoto di mappa su Render tramite HTTP (invariato).
+    Calls render_jobs_map_by_coordinates on Server3-Maps.py via streamable-http MCP.
+    Server3 is an MCP server, NOT a REST API — must use streamablehttp_client.
     """
-    if not locations:
-        logger.info("A2A: No locations for map")
-        return {"status": "success", "message": "No locations"}
+    if not jobs:
+        return {"status": "error", "error": "No jobs provided"}
 
-    logger.info(f"A2A: Calling job-map-renderer (locations={len(locations)})")
+    logger.info(f"A2A: Calling map renderer via streamable-http ({len(jobs)} jobs)")
+    try:
+        async with streamablehttp_client(JOB_MAP_RENDERER_URL) as (read, write, _):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool(
+                    "render_jobs_map_by_coordinates",
+                    arguments={"jobs": jobs},
+                )
+                raw = result.content[0].text
+                try:
+                    parsed = json.loads(raw)
+                except json.JSONDecodeError:
+                    parsed = {"status": "error", "error": f"Invalid JSON: {raw}"}
+                logger.info(f"A2A: map_url={parsed.get('map_url', 'none')[:80] if parsed.get('map_url') else 'none'}")
+                return parsed
+    except Exception as e:
+        logger.error(f"A2A: map-renderer error: {e}")
+        return {"status": "error", "error": str(e)}
+
+
+# ============ GEOCODING ============
+
+async def geocode_location(location_str: str) -> Dict[str, float]:
+    """
+    Geocodes a location string using Nominatim (OpenStreetMap). Free, no API key.
+    Returns {"latitude": float, "longitude": float} or {} on failure/skip.
+
+    Handles Italian patterns:
+      "Torino, Provincia di Torino"           -> "Torino, Italia"
+      "Provincia di Napoli, Campania"         -> "Napoli, Italia"
+      "Provincia di Modena, Emilia-Romagna"   -> "Modena, Italia"
+    Skips generic "Italia" / "Italy" — not geocodable to a meaningful point.
+    """
+    if not location_str:
+        return {}
+
+    normalized = location_str.strip().lower()
+    if normalized in ("italia", "italy", ""):
+        logger.info(f"A2A: Skipping generic location '{location_str}'")
+        return {}
+
+    clean = location_str.strip()
+    match = re.match(r"[Pp]rovincia\s+di\s+([^,]+)", clean)
+    if match:
+        city = match.group(1).strip()
+    else:
+        city = clean.split(",")[0].strip()
+        city = re.sub(r"^[Pp]rovincia\s+di\s+", "", city).strip()
+
+    query = f"{city}, Italia"
+    logger.info(f"A2A: Geocoding '{location_str}' -> '{query}'")
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            payload = {"locations": locations}
-
-            try:
-                url = f"{JOB_MAP_RENDERER_URL}/render_map"
-                logger.info(f"A2A: POST {url}")
-                response = await client.post(url, json=payload)
-                response.raise_for_status()
-                result = response.json()
-                logger.info("A2A: Map rendered successfully")
-                return result
-            except Exception:
-                logger.warning("A2A: Trying fallback map endpoint")
-                response = await client.post(JOB_MAP_RENDERER_URL, json=payload)
-                response.raise_for_status()
-                result = response.json()
-                logger.info("A2A: Map rendered successfully (fallback)")
-                return result
-
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={"q": query, "format": "json", "limit": 1, "countrycodes": "it"},
+                headers={"User-Agent": "JobSearchAgent-A2A/1.0"},
+            )
+            response.raise_for_status()
+            results = response.json()
+            if results:
+                lat = float(results[0]["lat"])
+                lon = float(results[0]["lon"])
+                logger.info(f"A2A: Geocoded '{query}' -> ({lat}, {lon})")
+                return {"latitude": lat, "longitude": lon}
+            logger.warning(f"A2A: No geocoding result for '{query}'")
+            return {}
     except Exception as e:
-        logger.warning(f"A2A: Error calling map-renderer: {str(e)}")
-        return {
-            "status": "error",
-            "error": f"Map rendering failed: {str(e)}",
-        }
+        logger.warning(f"A2A: Geocoding error for '{query}': {e}")
+        return {}
+
+
+async def enrich_jobs_with_coordinates(jobs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Geocodes jobs missing lat/lon concurrently via Nominatim.
+    Jobs that already have coordinates are left unchanged.
+    """
+    to_geocode = [
+        (i, job) for i, job in enumerate(jobs)
+        if job.get("latitude") is None or job.get("longitude") is None
+    ]
+
+    if not to_geocode:
+        logger.info("A2A: All jobs already have coordinates")
+        return jobs
+
+    tasks = [geocode_location(job.get("location", "")) for _, job in to_geocode]
+    results = await asyncio.gather(*tasks)
+
+    enriched = list(jobs)
+    geocoded = 0
+    for (i, _), coords in zip(to_geocode, results):
+        if coords:
+            enriched[i] = {**enriched[i], **coords}
+            geocoded += 1
+
+    already = len(jobs) - len(to_geocode)
+    logger.info(
+        f"A2A: Geocoding done — {already} had coords, {geocoded} geocoded, "
+        f"{len(to_geocode) - geocoded} skipped"
+    )
+    return enriched
+
+
+# ============ SKILL CLEANING ============
+
+def clean_skill_name(name: str) -> str:
+    """
+    Strips Lightcast's verbose parenthetical suffixes.
+    "React.js (Javascript Library)" -> "React.js"
+    "Python (Programming Language)" -> "Python"
+    """
+    return re.sub(r"\s*\(.*?\)", "", name).strip()
 
 
 # ============ A2A MAIN TOOL ============
@@ -204,16 +253,48 @@ async def search_jobs_complete(
 ) -> str:
     """
     Complete Job Search Tool via A2A Protocol.
-    Chiama i server MCP locali via STDIO (pattern corretto Python SDK).
-    
+    Extracts skills from a CV, finds matching job offers, geocodes locations,
+    and renders all results on a Google Maps image.
+
+    ── HOW TO PASS THE CV ──────────────────────────────────────────────────────
+    Always pass the full ORIGINAL CV text in `cv_text` when visible in the chat.
+
+    CORRECT:
+        search_jobs_complete(
+            cv_text="Curriculum Vitae\nNome: Mario Rossi\nCompetenze: React, Python...",
+            country="it"
+        )
+
+    WRONG — never pass skill lists, summaries, or your own previous output:
+        search_jobs_complete(cv_text="1. React.js\n2. Python...")     ← NO
+        search_jobs_complete(cv_text="Ho trovato 10 offerte...")      ← NO
+        search_jobs_complete(cv_text="", cv_filename="cv.txt")        ← only if CV truly unavailable
+
+    `cv_filename` is a last-resort fallback when no CV text is available at all.
+    ────────────────────────────────────────────────────────────────────────────
+
+    ── HOW TO DISPLAY THE RESULTS ──────────────────────────────────────────────
+    After receiving the response:
+    1. If map_url is present, show the map image: ![Mappa offerte](<map_url>)
+    2. Show ALL jobs in map_jobs as a numbered Markdown table:
+       | # | Titolo | Azienda | Città |
+       Use the "number" field as row label. Make titles clickable links if url present.
+    3. Never truncate — show every single job in the list.
+    ────────────────────────────────────────────────────────────────────────────
+
     Args:
-        cv_text:     Full CV text as a plain string (preferred).
-        cv_filename: Name of the CV file inside /info (fallback, default: "cv.txt").
-        country:     ISO 3166-1 alpha-2 country code (default: 'it' for Italy).
-        include_map: Whether to render a map with job locations (default: True).
-    
+        cv_text:     Full original CV text. PRIMARY input.
+        cv_filename: .txt file in /info folder. Fallback only. Default: "cv.txt".
+        country:     ISO 3166-1 alpha-2 code. Default: "it". Examples: "gb","us","de".
+        include_map: Render a map with job locations. Default: True.
+
     Returns:
-        JSON with skills_extracted, jobs_found, map_url, and summary.
+        JSON with:
+          - skills_extracted: list of skills found in the CV
+          - jobs_found: all job offers with coordinates (geocoded where missing)
+          - map_url: Google Static Maps URL — embed as ![Mappa offerte](<map_url>)
+          - map_jobs: [{number, title, company, location, url}] — one entry per map marker
+          - summary: full recap with complete numbered job list (never truncate this)
     """
     logger.info("=" * 80)
     logger.info("A2A: STARTING search_jobs_complete")
@@ -224,109 +305,106 @@ async def search_jobs_complete(
         "skills_extracted": [],
         "jobs_found": [],
         "map_url": None,
-        "map_data": None,
+        "map_jobs": [],
         "summary": "",
         "timestamp": datetime.now().isoformat(),
     }
 
     try:
-        # ====== STEP 1: EXTRACT SKILLS ======
-        logger.info("A2A: STEP 1 - Extracting skills from CV")
+        # ── STEP 1: EXTRACT SKILLS ────────────────────────────────────────────
+        logger.info("A2A: STEP 1 - Extracting skills")
 
         skills_response = await call_skill_extractor_tool(cv_text, cv_filename)
 
         if skills_response.get("status") != "success":
-            error_msg = skills_response.get("error", "Unknown error in skill extraction")
-            logger.error(f"A2A: Skill extraction failed: {error_msg}")
+            err = skills_response.get("error", "Unknown error")
+            logger.error(f"A2A: Skill extraction failed: {err}")
             result["status"] = "error"
-            result["summary"] = f"Failed to extract skills: {error_msg}"
+            result["summary"] = f"Errore estrazione competenze: {err}"
             return json.dumps(result, indent=2, ensure_ascii=False)
 
         skills = skills_response.get("skills", [])
         result["skills_extracted"] = skills
-        logger.info(f"A2A: Successfully extracted {len(skills)} skills")
+        logger.info(f"A2A: {len(skills)} skills extracted")
 
         if not skills:
-            result["summary"] = "No skills found in CV. Cannot search for jobs."
-            logger.warning("A2A: No skills found in CV")
+            result["summary"] = "Nessuna competenza trovata nel CV. Impossibile cercare lavori."
             return json.dumps(result, indent=2, ensure_ascii=False)
 
-        # ====== STEP 2: SELECT PRIMARY AND SECONDARY SKILLS ======
-        logger.info("A2A: STEP 2 - Selecting primary and secondary skills")
+        # ── STEP 2: BUILD SEARCH QUERY ────────────────────────────────────────
+        logger.info("A2A: STEP 2 - Building query")
 
-        primary_skill = skills[0]["name"]
-        secondary_skills = " ".join([s["name"] for s in skills[1:4] if "name" in s])
+        primary_skill = clean_skill_name(skills[0]["name"])
+        secondary_skills = " ".join(
+            clean_skill_name(s["name"]) for s in skills[1:4] if "name" in s
+        )
+        logger.info(f"A2A: what='{primary_skill}' what_or='{secondary_skills}'")
 
-        logger.info(f"A2A: Primary skill: {primary_skill}")
-        logger.info(f"A2A: Secondary skills: {secondary_skills}")
-
-        # ====== STEP 3: SEARCH JOBS ======
-        logger.info("A2A: STEP 3 - Searching jobs by skills")
+        # ── STEP 3: SEARCH JOBS ───────────────────────────────────────────────
+        logger.info("A2A: STEP 3 - Searching jobs")
 
         jobs_response = await call_job_matcher_tool(primary_skill, secondary_skills, country)
 
         if jobs_response.get("status") != "success":
-            logger.warning(f"A2A: Job search returned error: {jobs_response.get('error')}")
+            logger.warning(f"A2A: Job search error: {jobs_response.get('error')}")
             jobs = []
         else:
             jobs = jobs_response.get("jobOffers", [])
 
-        result["jobs_found"] = jobs
-        logger.info(f"A2A: Found {len(jobs)} job offers")
+        logger.info(f"A2A: {len(jobs)} jobs found")
 
-        # ====== STEP 4: RENDER MAP ======
+        # ── STEP 4: GEOCODE + RENDER MAP ──────────────────────────────────────
         if include_map and jobs:
-            logger.info("A2A: STEP 4 - Rendering map")
+            logger.info("A2A: STEP 4 - Geocoding + rendering map")
+            jobs = await enrich_jobs_with_coordinates(jobs)
 
-            locations_for_map = [
-                {
-                    "title": job.get("title"),
-                    "company": job.get("company"),
-                    "location": job.get("location"),
-                    "latitude": job.get("latitude"),
-                    "longitude": job.get("longitude"),
-                    "url": job.get("url"),
-                }
-                for job in jobs
-                if job.get("latitude") is not None and job.get("longitude") is not None
-            ]
-
-            if locations_for_map:
-                logger.info(f"A2A: Preparing {len(locations_for_map)} locations for map")
-                map_response = await call_map_renderer_tool(locations_for_map)
-
-                if map_response.get("status") == "success":
-                    result["map_url"] = map_response.get("map_url")
-                    result["map_data"] = map_response
-                    logger.info("A2A: Map rendered successfully")
-                else:
-                    logger.warning(f"A2A: Map rendering failed: {map_response.get('error')}")
+            map_response = await call_map_renderer_tool(jobs)
+            if map_response.get("map_url"):
+                result["map_url"] = map_response["map_url"]
+                result["map_jobs"] = map_response.get("jobs", [])
+                logger.info(
+                    f"A2A: Map OK — by_coords={map_response.get('by_coordinates',0)} "
+                    f"by_city={map_response.get('by_location',0)} "
+                    f"skipped={map_response.get('skipped',0)}"
+                )
             else:
-                logger.info("A2A: No jobs with coordinates for map")
+                logger.warning(f"A2A: Map failed: {map_response.get('error')}")
 
-        # ====== STEP 5: SYNTHESIZE RESPONSE ======
-        logger.info("A2A: STEP 5 - Synthesizing response")
+        result["jobs_found"] = jobs
 
-        summary_parts = [
-            f"Ho estratto {len(skills)} competenze dal CV.",
-            f"Ho trovato {len(jobs)} offerte di lavoro pertinenti.",
+        # ── STEP 5: BUILD SUMMARY ─────────────────────────────────────────────
+        logger.info("A2A: STEP 5 - Building summary")
+
+        jobs_with_coords = sum(1 for j in jobs if j.get("latitude") and j.get("longitude"))
+        lines = [
+            f"Competenze estratte: {len(skills)}",
+            f"Offerte trovate: {len(jobs)} — mostrare TUTTE",
+            f"Offerte con coordinate mappa: {jobs_with_coords}",
         ]
 
         if result["map_url"]:
-            summary_parts.append("Ho generato una mappa con le offerte geografiche.")
+            lines.append(f"MAPPA → mostra con: ![Mappa offerte]({result['map_url']})")
 
-        result["summary"] = " ".join(summary_parts)
+        lines.append("")
+        lines.append("LISTA COMPLETA — mostrare tutte le seguenti offerte senza troncare:")
+        for i, job in enumerate(jobs, 1):
+            loc = job.get("location") or "N/D"
+            url = job.get("url") or ""
+            title = job.get("title") or "N/D"
+            company = job.get("company") or "N/D"
+            lines.append(f"{i}. [{title}]({url}) | {company} | {loc}")
+
+        result["summary"] = "\n".join(lines)
         result["status"] = "success"
 
-        logger.info("A2A: Task completed successfully")
+        logger.info("A2A: Pipeline completed successfully")
         logger.info("=" * 80)
-
         return json.dumps(result, indent=2, ensure_ascii=False)
 
     except Exception as e:
-        logger.error(f"A2A: Exception in search_jobs_complete: {str(e)}")
+        logger.error(f"A2A: Unhandled exception: {e}")
         result["status"] = "error"
-        result["summary"] = f"Exception: {str(e)}"
+        result["summary"] = f"Eccezione: {str(e)}"
         logger.info("=" * 80)
         return json.dumps(result, indent=2, ensure_ascii=False)
 
@@ -335,6 +413,4 @@ async def search_jobs_complete(
 
 if __name__ == "__main__":
     logger.info("Starting Job Search Agent (A2A) Server")
-    logger.info("This server will be run by mcpo as a subprocess")
-    logger.info("Exposed tool: search_jobs_complete")
     a2a_server.run()
