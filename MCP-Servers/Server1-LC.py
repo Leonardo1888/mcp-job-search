@@ -4,7 +4,7 @@ Extracts and analyzes skills from a CV using the Lightcast API.
 Docs: https://docs.lightcast.io/lightcast-api/reference/api-introduction
 
 Tools:
-    extract_skills_from_cv      — extract skills from a CV file
+    extract_skills_from_cv      — extract skills from CV text (passed directly or from file)
     get_skill_details           — get full details for specific skill IDs
     find_related_skills_for_cv  — extract skills + find related ones
     analyze_cv_complete         — full pipeline: skills + details + related
@@ -145,28 +145,55 @@ def _fmt_skill(skill: dict) -> dict:
         "type":       skill["skill"].get("type", {}).get("name", "Unknown"),
     }
 
+def _resolve_cv_text(cv_text: str, cv_filename: str) -> str:
+    """
+    Returns CV text from either the direct text argument or a file on disk.
+    Raises ValueError if neither is provided.
+    """
+    if cv_text and cv_text.strip():
+        return cv_text.strip()
+    if cv_filename and cv_filename.strip():
+        return read_cv_file(cv_filename.strip())
+    raise ValueError(
+        "You must provide either 'cv_text' (the CV content as a string) "
+        "or 'cv_filename' (a filename inside the /info folder)."
+    )
+
 
 #  Tools 
 
 @mcp1.tool()
 async def extract_skills_from_cv(
-    cv_filename: str,
+    cv_text: str = "",
+    cv_filename: str = "",
     confidence_threshold: float = 0.6,
 ) -> str:
     """
-    Extract professional skills from a CV file using the Lightcast Skills API.
+    Extract professional skills from a CV using the Lightcast Skills API.
+
+    IMPORTANT — always call this tool when the user shares a CV, even if you can
+    already read the CV content in the conversation. Never extract skills manually
+    from the text: always delegate to this tool so that Lightcast performs the
+    semantic analysis.
 
     Use this as the FIRST step in any CV analysis workflow.
-    The extracted skill names and IDs can then be passed to other tools
-    (get_skill_details, find_related_skills_for_cv, search_jobs_by_skills).
-    If they asked to search for a job, immediatly call for: "search_jobs_by_skills" after you found the skills in the curriculum.
-    
+    If the user also asked to search for a job, immediately call
+    "search_jobs_by_skills" right after receiving the skills from this tool.
+
+    How to provide the CV content (choose ONE):
+    - cv_text     : pass the full CV text directly (preferred when the user has
+                    shared the file or pasted the text in the chat).
+    - cv_filename : name of a .txt file already saved in the /info folder
+                    (e.g. "cv.txt"). Use this only when no text is available
+                    in the conversation.
+
     Args:
-        cv_filename:          Name of the CV text file inside the /info folder
-                              (e.g. "cv.txt"). The file must already exist there.
+        cv_text:              Full CV text as a plain string. Use this when the
+                              content is already visible in the conversation.
+        cv_filename:          Name of the CV file inside /info (e.g. "cv.txt").
+                              Used only as a fallback when cv_text is empty.
         confidence_threshold: Minimum confidence score to include a skill (0.0–1.0).
-                              Default 0.6 filters out weak/ambiguous matches.
-                              Lower to 0.4 if too few skills are returned.
+                              Default 0.6. Lower to 0.4 if too few skills are returned.
 
     Returns:
         JSON with:
@@ -175,21 +202,22 @@ async def extract_skills_from_cv(
         On error: {status: "error", error: "<message>"}
     """
     try:
-        cv_text = read_cv_file(cv_filename)
-        logging.info(f"CV loaded: {cv_filename}")
+        text = _resolve_cv_text(cv_text, cv_filename)
+        source_label = "cv_text (inline)" if (cv_text and cv_text.strip()) else cv_filename
+        logging.info(f"CV loaded from: {source_label}")
 
-        raw = await lightcast_client.extract_skills(cv_text, confidence_threshold)
+        raw = await lightcast_client.extract_skills(text, confidence_threshold)
         skills = raw.get("data", [])
         logging.info(f"Skills extracted: {len(skills)} (threshold={confidence_threshold})")
 
         return json.dumps({
             "status":             "success",
-            "cv_filename":        cv_filename,
+            "source":             source_label,
             "total_skills_found": len(skills),
             "skills":             [_fmt_skill(s) for s in skills],
         }, indent=2, ensure_ascii=False)
 
-    except FileNotFoundError as e:
+    except (ValueError, FileNotFoundError) as e:
         return json.dumps({"status": "error", "error": str(e)}, indent=2)
     except Exception as e:
         logging.error(f"extract_skills_from_cv failed: {e}")
@@ -228,7 +256,8 @@ async def get_skill_details(skill_ids: List[str]) -> str:
 
 @mcp1.tool()
 async def find_related_skills_for_cv(
-    cv_filename: str,
+    cv_text: str = "",
+    cv_filename: str = "",
     limit_per_skill: int = 5,
 ) -> str:
     """
@@ -239,7 +268,8 @@ async def find_related_skills_for_cv(
     This tool runs extract_skills_from_cv internally; no need to call it first.
 
     Args:
-        cv_filename:     Name of the CV text file inside /info (e.g. "cv.txt").
+        cv_text:         Full CV text as a plain string (preferred).
+        cv_filename:     Name of the CV text file inside /info (fallback, e.g. "cv.txt").
         limit_per_skill: Max number of related skills to return per extracted skill.
                          Default 5. Increase to 10 for a broader suggestion list.
 
@@ -251,8 +281,8 @@ async def find_related_skills_for_cv(
         On error: {status: "error", error: "<message>"}
     """
     try:
-        cv_text = read_cv_file(cv_filename)
-        raw = await lightcast_client.extract_skills(cv_text, 0.6)
+        text = _resolve_cv_text(cv_text, cv_filename)
+        raw = await lightcast_client.extract_skills(text, 0.6)
         skills = raw.get("data", [])
 
         if not skills:
@@ -274,7 +304,10 @@ async def find_related_skills_for_cv(
 
 
 @mcp1.tool()
-async def analyze_cv_complete(cv_filename: str = "cv.txt") -> str:
+async def analyze_cv_complete(
+    cv_text: str = "",
+    cv_filename: str = "cv.txt",
+) -> str:
     """
     Run the full CV analysis pipeline in a single call.
 
@@ -286,7 +319,8 @@ async def analyze_cv_complete(cv_filename: str = "cv.txt") -> str:
     Do NOT use this just to extract skills — use extract_skills_from_cv instead.
 
     Args:
-        cv_filename: Name of the CV text file inside /info (default: "cv.txt").
+        cv_text:     Full CV text as a plain string (preferred).
+        cv_filename: Name of the CV text file inside /info (fallback, default: "cv.txt").
 
     Returns:
         JSON with:
@@ -297,8 +331,8 @@ async def analyze_cv_complete(cv_filename: str = "cv.txt") -> str:
         On error: {status: "error", error: "<message>"}
     """
     try:
-        cv_text = read_cv_file(cv_filename)
-        raw = await lightcast_client.extract_skills(cv_text, 0.6)
+        text = _resolve_cv_text(cv_text, cv_filename)
+        raw = await lightcast_client.extract_skills(text, 0.6)
         skills = raw.get("data", [])
 
         if not skills:
@@ -308,11 +342,10 @@ async def analyze_cv_complete(cv_filename: str = "cv.txt") -> str:
         details = await lightcast_client.get_skills_details(ids)
         related  = await lightcast_client.find_related_skills(ids, 5)
 
-        logging.info(f"analyze_cv_complete: {len(skills)} skills from '{cv_filename}'")
+        logging.info(f"analyze_cv_complete: {len(skills)} skills extracted")
 
         return json.dumps({
-            "status":      "success",
-            "cv_filename": cv_filename,
+            "status": "success",
             "analysis": {
                 "total_skills_extracted": len(skills),
                 "extracted_skills":       [_fmt_skill(s) for s in skills],

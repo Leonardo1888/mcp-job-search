@@ -84,3 +84,70 @@
 2026-02-20 22:37:07 [INFO] Processing request of type CallToolRequest
 2026-02-20 22:37:09 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+Front+End+Design "HTTP/1.1 200 OK"
 2026-02-20 22:37:09 [INFO] [skills] Job offers found: 10
+2026-02-22 09:37:02 [INFO] Processing request of type ListToolsRequest
+2026-02-22 09:38:19 [INFO] Processing request of type CallToolRequest
+2026-02-22 09:38:21 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=JavaScript&what_or=Python+SQL+Java+React "HTTP/1.1 200 OK"
+2026-02-22 09:38:21 [INFO] [skills] Job offers found: 10
+2026-02-22 10:29:16 [INFO] Processing request of type ListToolsRequest
+2026-02-22 10:34:37 [INFO] Processing request of type CallToolRequest
+2026-02-22 10:34:38 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=Python+SQL+JavaScript "HTTP/1.1 200 OK"
+2026-02-22 10:34:38 [INFO] [skills] Job offers found: 10
+2026-02-22 10:40:51 [INFO] Processing request of type ListToolsRequest
+2026-02-22 10:41:44 [INFO] Processing request of type CallToolRequest
+2026-02-22 10:41:45 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=Python&what_or=React.js+SQL+Front+End+Design+HTML5 "HTTP/1.1 200 OK"
+2026-02-22 10:41:45 [INFO] [skills] Job offers found: 10
+2026-02-22 10:41:45 [ERROR] search_jobs_by_skills failed: 'float' object has no attribute 'get'
+2026-02-22 10:45:24 [INFO] Processing request of type ListToolsRequest
+2026-02-22 10:55:34 [INFO] Processing request of type CallToolRequest
+2026-02-22 10:55:35 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=Python+SQL+JavaScript "HTTP/1.1 200 OK"
+2026-02-22 10:55:35 [INFO] [skills] Job offers found: 10
+2026-02-22 12:15:58 [INFO] Processing request of type CallToolRequest
+2026-02-22 12:15:59 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+HTML+CSS "HTTP/1.1 200 OK"
+2026-02-22 12:15:59 [INFO] [skills] Job offers found: 10
+2026-02-22 13:31:20 [INFO] Processing request of type CallToolRequest
+2026-02-22 13:31:21 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+HTML5+JavaScript "HTTP/1.1 200 OK"
+2026-02-22 13:31:21 [INFO] [skills] Job offers found: 10
+2026-02-22 13:52:50 [INFO] Processing request of type ListToolsRequest
+2026-02-22 13:53:48 [INFO] Processing request of type CallToolRequest
+2026-02-22 13:53:49 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=Python+SQL+JavaScript+Java "HTTP/1.1 200 OK"
+2026-02-22 13:53:49 [INFO] [skills] Job offers found: 10
+2026-02-22 16:10:58 [INFO] Processing request of type ListToolsRequest
+2026-02-22 16:11:11 [INFO] Processing request of type ListToolsRequest
+2026-02-22 16:13:06 [INFO] Processing request of type CallToolRequest
+2026-02-22 16:13:07 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=Python+SQL+JavaScript "HTTP/1.1 200 OK"
+2026-02-22 16:13:07 [INFO] [skills] Job offers found: 10
+2026-02-22 16:26:06 [INFO] Processing request of type CallToolRequest
+2026-02-22 16:26:07 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=JavaScript&what_or=Python+SQL+Java+React+HTML5+HTML+CSS "HTTP/1.1 200 OK"
+2026-02-22 16:26:07 [INFO] [skills] Job offers found: 10
+2026-02-22 16:56:24 [INFO] Processing request of type ListToolsRequest
+2026-02-23 14:58:40 [INFO] Processing request of type ListToolsRequest
+2026-02-23 15:09:29 [INFO] Processing request of type ListToolsRequest
+2026-02-27 17:45:38 [INFO] Processing request of type ListToolsRequest
+2026-03-08 15:57:04 [INFO] Processing request of type ListToolsRequest
+2026-03-08 16:46:58 [INFO] Processing request of type ListToolsRequest
+2026-03-08 16:54:33 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:03:53 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:04:01 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:05:36 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:11:51 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:16:54 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:19:30 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:19:54 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:25:54 [INFO] Processing request of type ListToolsRequest
+2026-03-08 17:27:22 [INFO] Processing request of type CallToolRequest
+2026-03-08 17:27:23 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React&what_or=Python+SQL+JavaScript+Java+HTML+CSS "HTTP/1.1 200 OK"
+2026-03-08 17:27:23 [INFO] [skills] Job offers found: 10
+2026-03-08 21:35:37 [INFO] Processing request of type ListToolsRequest
+2026-03-08 21:36:19 [INFO] Processing request of type ListToolsRequest
+2026-03-08 21:37:12 [INFO] Processing request of type CallToolRequest
+2026-03-08 21:37:13 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js+%28Javascript+Library%29&what_or=Python+%28Programming+Language%29+SQL+%28Programming+Language%29+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-08 21:37:13 [INFO] [skills] Job offers found: 0
+2026-03-08 21:37:13 [INFO] Processing request of type ListToolsRequest
+2026-03-08 21:37:40 [INFO] Processing request of type CallToolRequest
+2026-03-08 21:37:41 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js+%28Javascript+Library%29&what_or=Python+%28Programming+Language%29+SQL+%28Programming+Language%29+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-08 21:37:41 [INFO] [skills] Job offers found: 0
+2026-03-08 21:37:41 [INFO] Processing request of type ListToolsRequest
+2026-03-08 21:37:58 [INFO] Processing request of type CallToolRequest
+2026-03-08 21:37:59 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js+%28Javascript+Library%29&what_or=Python+%28Programming+Language%29+SQL+%28Programming+Language%29+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-08 21:37:59 [INFO] [skills] Job offers found: 0
+2026-03-08 21:37:59 [INFO] Processing request of type ListToolsRequest

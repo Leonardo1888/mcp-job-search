@@ -94,8 +94,10 @@ def _format(data: dict, source: str) -> str:
                 "title":       job.get("title"),
                 "company":     job.get("company", {}).get("display_name"),
                 "location":    job.get("location", {}).get("display_name"),
+                "latitude":    job.get("latitude"),
+                "longitude":   job.get("longitude"),
                 "description": job.get("description"),
-                "url":         job.get("redirect_url"),
+                "url":         job.get("redirect_url")
             }
             for job in jobs
         ],

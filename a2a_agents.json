@@ -1,0 +1,22 @@
+{
+  "agents": [
+    {
+      "name": "SkillExtractorAgent",
+      "description": "Agente specializzato nell'estrazione di skill da testi",
+      "endpoint": "python3 MCP-Servers/Server1-LC.py",
+      "protocol": "mcp-local"
+    },
+    {
+      "name": "JobMatcherAgent",
+      "description": "Agente per il matching tra profili e lavori",
+      "endpoint": "python3 MCP-Servers/Server2-A.py",
+      "protocol": "mcp-local"
+    },
+    {
+      "name": "MapRendererAgent",
+      "description": "Agente remoto per rendering mappe",
+      "endpoint": "https://mcp-google-maps.onrender.com/mcp",
+      "protocol": "mcp-http"
+    }
+  ]
+}
