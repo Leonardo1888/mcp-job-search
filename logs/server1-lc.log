@@ -271,3 +271,45 @@
 2026-03-08 21:37:57 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
 2026-03-08 21:37:57 [INFO] Skills extracted: 9 (threshold=0.6)
 2026-03-08 21:37:57 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:04:48 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:06:21 [INFO] Processing request of type CallToolRequest
+2026-03-08 22:06:21 [INFO] CV loaded from: cv.txt
+2026-03-08 22:06:21 [INFO] Requesting new Lightcast access token
+2026-03-08 22:06:22 [INFO] HTTP Request: POST https://auth.emsicloud.com/connect/token "HTTP/1.1 200 OK"
+2026-03-08 22:06:22 [INFO] Access token obtained successfully
+2026-03-08 22:06:22 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-03-08 22:06:22 [INFO] Skills extracted: 9 (threshold=0.6)
+2026-03-08 22:06:22 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:06:53 [INFO] Processing request of type CallToolRequest
+2026-03-08 22:06:53 [INFO] CV loaded from: cv_text (inline)
+2026-03-08 22:06:53 [INFO] Requesting new Lightcast access token
+2026-03-08 22:06:54 [INFO] HTTP Request: POST https://auth.emsicloud.com/connect/token "HTTP/1.1 200 OK"
+2026-03-08 22:06:54 [INFO] Access token obtained successfully
+2026-03-08 22:06:54 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-03-08 22:06:54 [INFO] Skills extracted: 9 (threshold=0.6)
+2026-03-08 22:06:54 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:07:39 [INFO] Processing request of type CallToolRequest
+2026-03-08 22:07:39 [INFO] CV loaded from: cv_text (inline)
+2026-03-08 22:07:39 [INFO] Requesting new Lightcast access token
+2026-03-08 22:07:40 [INFO] HTTP Request: POST https://auth.emsicloud.com/connect/token "HTTP/1.1 200 OK"
+2026-03-08 22:07:40 [INFO] Access token obtained successfully
+2026-03-08 22:07:40 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-03-08 22:07:40 [INFO] Skills extracted: 13 (threshold=0.6)
+2026-03-08 22:07:40 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:45:01 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:46:20 [INFO] Processing request of type CallToolRequest
+2026-03-08 22:46:20 [INFO] CV loaded from: cv.txt
+2026-03-08 22:46:20 [INFO] Requesting new Lightcast access token
+2026-03-08 22:46:21 [INFO] HTTP Request: POST https://auth.emsicloud.com/connect/token "HTTP/1.1 200 OK"
+2026-03-08 22:46:21 [INFO] Access token obtained successfully
+2026-03-08 22:46:21 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-03-08 22:46:21 [INFO] Skills extracted: 9 (threshold=0.6)
+2026-03-08 22:46:21 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:47:49 [INFO] Processing request of type CallToolRequest
+2026-03-08 22:47:49 [INFO] CV loaded from: cv_text (inline)
+2026-03-08 22:47:49 [INFO] Requesting new Lightcast access token
+2026-03-08 22:47:49 [INFO] HTTP Request: POST https://auth.emsicloud.com/connect/token "HTTP/1.1 200 OK"
+2026-03-08 22:47:49 [INFO] Access token obtained successfully
+2026-03-08 22:47:50 [INFO] HTTP Request: POST https://api.lightcast.io/skills/versions/latest/extract "HTTP/1.1 200 OK"
+2026-03-08 22:47:50 [INFO] Skills extracted: 8 (threshold=0.6)
+2026-03-08 22:47:50 [INFO] Processing request of type ListToolsRequest
