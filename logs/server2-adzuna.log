@@ -173,3 +173,43 @@
 2026-03-08 22:47:52 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+HyperText+Markup+Language "HTTP/1.1 200 OK"
 2026-03-08 22:47:52 [INFO] [skills] Job offers found: 10
 2026-03-08 22:47:52 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:55:47 [INFO] Processing request of type ListToolsRequest
+2026-03-08 22:56:40 [INFO] Processing request of type CallToolRequest
+2026-03-08 22:56:42 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-08 22:56:42 [INFO] [skills] Job offers found: 10
+2026-03-08 22:56:42 [INFO] Processing request of type ListToolsRequest
+2026-03-09 14:33:56 [INFO] Processing request of type ListToolsRequest
+2026-03-09 14:41:31 [INFO] Processing request of type CallToolRequest
+2026-03-09 14:41:35 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+HyperText+Markup+Language "HTTP/1.1 200 OK"
+2026-03-09 14:41:35 [INFO] [skills] Job offers found: 10
+2026-03-09 14:41:35 [INFO] Processing request of type ListToolsRequest
+2026-03-09 14:41:48 [INFO] Processing request of type ListToolsRequest
+2026-03-09 14:47:39 [INFO] Processing request of type CallToolRequest
+2026-03-09 14:47:45 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-09 14:47:45 [INFO] [skills] Job offers found: 10
+2026-03-09 14:47:45 [INFO] Processing request of type ListToolsRequest
+2026-03-09 14:58:49 [INFO] Processing request of type ListToolsRequest
+2026-03-09 14:59:22 [INFO] Processing request of type ListToolsRequest
+2026-03-09 14:59:40 [INFO] Processing request of type CallToolRequest
+2026-03-09 14:59:42 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-09 14:59:42 [INFO] [skills] Job offers found: 10
+2026-03-09 14:59:42 [INFO] Processing request of type ListToolsRequest
+2026-03-09 15:15:25 [INFO] Processing request of type ListToolsRequest
+2026-03-09 15:15:29 [INFO] Processing request of type ListToolsRequest
+2026-03-09 15:15:32 [INFO] Processing request of type ListToolsRequest
+2026-03-09 15:15:53 [INFO] Processing request of type ListToolsRequest
+2026-03-09 15:16:14 [INFO] Processing request of type CallToolRequest
+2026-03-09 15:16:14 [ERROR] search_jobs_by_skills failed: [Errno -3] Temporary failure in name resolution
+2026-03-09 15:16:14 [INFO] Processing request of type ListToolsRequest
+2026-03-09 15:19:21 [INFO] Processing request of type CallToolRequest
+2026-03-09 15:19:23 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-09 15:19:23 [INFO] [skills] Job offers found: 10
+2026-03-09 15:19:23 [INFO] Processing request of type ListToolsRequest
+2026-03-09 15:19:35 [INFO] Processing request of type CallToolRequest
+2026-03-09 15:19:36 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-09 15:19:36 [INFO] [skills] Job offers found: 10
+2026-03-09 15:19:36 [INFO] Processing request of type ListToolsRequest
+2026-03-09 15:19:54 [INFO] Processing request of type CallToolRequest
+2026-03-09 15:19:55 [INFO] HTTP Request: GET https://api.adzuna.com/v1/api/jobs/it/search/1/?app_id=5993579b&app_key=4e3a27b339023fc2729eb9f172016033&results_per_page=10&what=React.js&what_or=Python+SQL+Front+End+Design "HTTP/1.1 200 OK"
+2026-03-09 15:19:55 [INFO] [skills] Job offers found: 10
+2026-03-09 15:19:55 [INFO] Processing request of type ListToolsRequest

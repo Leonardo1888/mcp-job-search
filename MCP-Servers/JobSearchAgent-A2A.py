@@ -9,6 +9,8 @@ Pipeline:
   4. Render map              →  Server3-Maps.py (streamable-http MCP)
 """
 
+# Non modificare i commenti. Sono importanti per gestire il flusso corretto delle operazioni che l'LLM deve compiere.
+
 import os
 import re
 import json
@@ -233,6 +235,13 @@ async def enrich_jobs_with_coordinates(jobs: List[Dict[str, Any]]) -> List[Dict[
 
 # ============ SKILL CLEANING ============
 
+def _marker_label(row_number: int) -> str:
+    """Single-char Google Maps marker label. 1-9 → digit, 10+ → A/B/C..."""
+    if row_number <= 9:
+        return str(row_number)
+    return chr(55 + row_number)  # 10→A, 11→B ...
+
+
 def clean_skill_name(name: str) -> str:
     """
     Strips Lightcast's verbose parenthetical suffixes.
@@ -358,6 +367,12 @@ async def search_jobs_complete(
             logger.info("A2A: STEP 4 - Geocoding + rendering map")
             jobs = await enrich_jobs_with_coordinates(jobs)
 
+            # Stamp each job with its final row number (1-based, stable) so that
+            # Server3 can use it directly on the map marker. This guarantees that
+            # marker #6 on the map = row #6 in the table, always.
+            for idx, job in enumerate(jobs, 1):
+                job["_row_number"] = idx
+
             map_response = await call_map_renderer_tool(jobs)
             if map_response.get("map_url"):
                 result["map_url"] = map_response["map_url"]
@@ -375,24 +390,43 @@ async def search_jobs_complete(
         # ── STEP 5: BUILD SUMMARY ─────────────────────────────────────────────
         logger.info("A2A: STEP 5 - Building summary")
 
-        jobs_with_coords = sum(1 for j in jobs if j.get("latitude") and j.get("longitude"))
+        # Build the definitive map_jobs list: ALL jobs, numbered 1-N by row.
+        # Jobs that are on the map have a marker with the same number.
+        # Jobs with location="Italia" (skipped from map) are shown in the table
+        # with their row number but without a map pin.
+        mapped_numbers = {j["number"] for j in result.get("map_jobs", [])}  # e.g. {"2","4","6","7","8","A"}
+        all_jobs_for_table = []
+        for job in jobs:
+            row_num = job.get("_row_number", 0)
+            loc = job.get("location") or "N/D"
+            is_on_map = str(row_num) in mapped_numbers
+            all_jobs_for_table.append({
+                "number":   _marker_label(row_num),  # matches map marker exactly
+                "title":    job.get("title") or "N/D",
+                "company":  job.get("company") or "N/D",
+                "location": loc,
+                "url":      job.get("url") or "",
+                "on_map":   is_on_map,
+            })
+
+        # Replace map_jobs with the complete list (table uses this)
+        result["map_jobs"] = all_jobs_for_table
+
+        jobs_on_map = sum(1 for j in all_jobs_for_table if j["on_map"])
         lines = [
             f"Competenze estratte: {len(skills)}",
             f"Offerte trovate: {len(jobs)} — mostrare TUTTE",
-            f"Offerte con coordinate mappa: {jobs_with_coords}",
+            f"Offerte sulla mappa: {jobs_on_map}/{len(jobs)}",
         ]
 
         if result["map_url"]:
             lines.append(f"MAPPA → mostra con: ![Mappa offerte]({result['map_url']})")
 
         lines.append("")
-        lines.append("LISTA COMPLETA — mostrare tutte le seguenti offerte senza troncare:")
-        for i, job in enumerate(jobs, 1):
-            loc = job.get("location") or "N/D"
-            url = job.get("url") or ""
-            title = job.get("title") or "N/D"
-            company = job.get("company") or "N/D"
-            lines.append(f"{i}. [{title}]({url}) | {company} | {loc}")
+        lines.append("LISTA COMPLETA — il numero a sinistra corrisponde al pin sulla mappa:")
+        for j in all_jobs_for_table:
+            pin = "📍" if j["on_map"] else "  "
+            lines.append(f"{j['number']}. {pin}[{j['title']}]({j['url']}) | {j['company']} | {j['location']}")
 
         result["summary"] = "\n".join(lines)
         result["status"] = "success"
