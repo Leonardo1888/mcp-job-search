@@ -150,7 +150,7 @@ async def call_map_renderer_tool(jobs: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 # ============ GEOCODING ============
 
-async def geocode_location(location_str: str) -> Dict[str, float]:
+async def geocode_location(location_str: str, country: str = "it") -> Dict[str, float]:
     """
     Geocodes a location string using Nominatim (OpenStreetMap). Free, no API key.
     Returns {"latitude": float, "longitude": float} or {} on failure/skip.
@@ -159,32 +159,42 @@ async def geocode_location(location_str: str) -> Dict[str, float]:
       "Torino, Provincia di Torino"           -> "Torino, Italia"
       "Provincia di Napoli, Campania"         -> "Napoli, Italia"
       "Provincia di Modena, Emilia-Romagna"   -> "Modena, Italia"
-    Skips generic "Italia" / "Italy" — not geocodable to a meaningful point.
+    Skips generic country-only locations — not geocodable to a meaningful point.
     """
     if not location_str:
         return {}
 
     normalized = location_str.strip().lower()
-    if normalized in ("italia", "italy", ""):
+    # Skip bare country names (e.g. "Italia", "Italy", "United Kingdom")
+    generic = {"italia", "italy", "united kingdom", "uk", "england",
+               "germany", "deutschland", "france", "spain", "espana", ""}
+    if normalized in generic:
         logger.info(f"A2A: Skipping generic location '{location_str}'")
         return {}
 
     clean = location_str.strip()
-    match = re.match(r"[Pp]rovincia\s+di\s+([^,]+)", clean)
-    if match:
-        city = match.group(1).strip()
-    else:
-        city = clean.split(",")[0].strip()
-        city = re.sub(r"^[Pp]rovincia\s+di\s+", "", city).strip()
 
-    query = f"{city}, Italia"
-    logger.info(f"A2A: Geocoding '{location_str}' -> '{query}'")
+    # Italian province patterns only apply when country is "it"
+    if country == "it":
+        match = re.match(r"[Pp]rovincia\s+di\s+([^,]+)", clean)
+        if match:
+            city = match.group(1).strip()
+        else:
+            city = clean.split(",")[0].strip()
+            city = re.sub(r"^[Pp]rovincia\s+di\s+", "", city).strip()
+        query = f"{city}, Italia"
+    else:
+        # For non-Italian markets just use the first part of the location string
+        city = clean.split(",")[0].strip()
+        query = city
+
+    logger.info(f"A2A: Geocoding '{location_str}' -> '{query}' (countrycodes={country})")
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(
                 "https://nominatim.openstreetmap.org/search",
-                params={"q": query, "format": "json", "limit": 1, "countrycodes": "it"},
+                params={"q": query, "format": "json", "limit": 1, "countrycodes": country},
                 headers={"User-Agent": "JobSearchAgent-A2A/1.0"},
             )
             response.raise_for_status()
@@ -201,7 +211,7 @@ async def geocode_location(location_str: str) -> Dict[str, float]:
         return {}
 
 
-async def enrich_jobs_with_coordinates(jobs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+async def enrich_jobs_with_coordinates(jobs: List[Dict[str, Any]], country: str = "it") -> List[Dict[str, Any]]:
     """
     Geocodes jobs missing lat/lon concurrently via Nominatim.
     Jobs that already have coordinates are left unchanged.
@@ -215,7 +225,7 @@ async def enrich_jobs_with_coordinates(jobs: List[Dict[str, Any]]) -> List[Dict[
         logger.info("A2A: All jobs already have coordinates")
         return jobs
 
-    tasks = [geocode_location(job.get("location", "")) for _, job in to_geocode]
+    tasks = [geocode_location(job.get("location", ""), country) for _, job in to_geocode]
     results = await asyncio.gather(*tasks)
 
     enriched = list(jobs)
@@ -343,9 +353,28 @@ async def search_jobs_complete(
         # ── STEP 2: BUILD SEARCH QUERY ────────────────────────────────────────
         logger.info("A2A: STEP 2 - Building query")
 
-        primary_skill = clean_skill_name(skills[0]["name"])
+        # Deprioritize generic tool/environment names that produce poor Adzuna results.
+        # These are valid skills but too broad or too specific to be useful as the
+        # primary keyword (e.g. "Jupyter Notebook" returns almost nothing on Adzuna).
+        LOW_PRIORITY_TERMS = {
+            "jupyter notebook", "jupyter", "git", "github", "docker", "linux",
+            "numpy", "pandas (python package)", "matplotlib", "seaborn",
+            "rest api", "rest apis", "agile", "scrum", "jira", "notion", "trello",
+            "microsoft excel", "excel", "google data studio", "bigquery",
+        }
+
+        def skill_priority(skill: dict) -> int:
+            """Lower = better for primary keyword. High-confidence technical skills first."""
+            name_lower = clean_skill_name(skill.get("name", "")).lower()
+            if name_lower in LOW_PRIORITY_TERMS:
+                return 1  # deprioritized
+            return 0  # preferred
+
+        sorted_skills = sorted(skills, key=skill_priority)
+
+        primary_skill = clean_skill_name(sorted_skills[0]["name"])
         secondary_skills = " ".join(
-            clean_skill_name(s["name"]) for s in skills[1:4] if "name" in s
+            clean_skill_name(s["name"]) for s in sorted_skills[1:4] if "name" in s
         )
         logger.info(f"A2A: what='{primary_skill}' what_or='{secondary_skills}'")
 
@@ -365,7 +394,7 @@ async def search_jobs_complete(
         # ── STEP 4: GEOCODE + RENDER MAP ──────────────────────────────────────
         if include_map and jobs:
             logger.info("A2A: STEP 4 - Geocoding + rendering map")
-            jobs = await enrich_jobs_with_coordinates(jobs)
+            jobs = await enrich_jobs_with_coordinates(jobs, country)
 
             # Stamp each job with its final row number (1-based, stable) so that
             # Server3 can use it directly on the map marker. This guarantees that

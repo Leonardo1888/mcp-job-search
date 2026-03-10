@@ -1,0 +1,36 @@
+Luca Brambilla
+Via Roma 45, Bergamo
+luca.brambilla@email.it | +39 347 9876543
+
+FORMAZIONE
+
+2020 – 2024 | Laurea Triennale in Ingegneria Informatica (L-8) – Università degli Studi di Bergamo
+Voto di laurea: 102/110
+Tesi: "Implementazione di algoritmi di ordinamento parallelo in Java con analisi delle prestazioni"
+Esami rilevanti: Algoritmi e Strutture Dati (30/30), Reti di Calcolatori (28/30),
+Basi di Dati (29/30), Sistemi Operativi (27/30), Machine Learning (28/30)
+
+2015 – 2020 | Diploma Scientifico – Liceo Scientifico A. Volta, Bergamo
+
+ESPERIENZE
+
+Giugno – Settembre 2023 | Tirocinio curriculare – DataSoft Srl, Bergamo
+- Sviluppo di un modulo Java per la gestione di strutture dati ad albero
+- Analisi e documentazione di algoritmi di ricerca su grafi
+
+PROGETTI UNIVERSITARI
+
+- Progetto di Machine Learning: classificazione di immagini con reti neurali convoluzionali (Python, TensorFlow)
+- Progetto di Basi di Dati: progettazione di un database relazionale per la gestione di una biblioteca
+- Progetto di Reti: simulazione di protocolli di routing con NS3
+
+COMPETENZE TECNICHE
+
+Linguaggi: Java, Python, C, SQL
+Strumenti: Eclipse, Git, Linux, NS3
+Ambiti: Algoritmi e Strutture Dati, Machine Learning, Reti di Calcolatori, Basi di Dati
+
+LINGUE
+
+Italiano: madrelingua
+Inglese: livello B1

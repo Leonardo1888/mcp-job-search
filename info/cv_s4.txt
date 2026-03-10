@@ -1,0 +1,33 @@
+James Carter
+14 Oxford Street, London
+james.carter@email.co.uk | +44 7911 234567
+
+WORK EXPERIENCE
+
+2022 – present | Data Scientist – FinTech Analytics Ltd, London
+- Developed and deployed machine learning models for credit risk assessment using Python, Scikit-learn and XGBoost
+- Built data pipelines for ingestion and transformation of large datasets with Pandas and NumPy
+- Created interactive dashboards for business stakeholders using Tableau and Matplotlib
+- Collaborated with engineering teams to integrate models into production via REST APIs
+
+2020 – 2022 | Junior Data Analyst – InsightData Ltd, Manchester
+- Performed exploratory data analysis and statistical modelling using Python and R
+- Designed and maintained SQL queries on PostgreSQL databases for reporting purposes
+- Assisted in the development of TensorFlow-based classification models
+
+EDUCATION
+
+2017 – 2020 | BSc Computer Science – University of Manchester
+Dissertation: "Predictive modelling of financial time series using LSTM neural networks"
+
+TECHNICAL SKILLS
+
+Languages: Python, R, SQL
+Libraries & Frameworks: TensorFlow, Scikit-learn, Pandas, NumPy, XGBoost
+Visualisation: Tableau, Matplotlib, Seaborn
+Tools: Git, Docker, Jupyter Notebook, PostgreSQL
+
+LANGUAGES
+
+English: native
+Italian: intermediate (B2)
