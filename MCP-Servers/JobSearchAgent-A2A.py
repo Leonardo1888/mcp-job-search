@@ -9,7 +9,7 @@ Pipeline:
   4. Render map              →  Server3-Maps.py (streamable-http MCP)
 """
 
-# Non modificare i commenti. Sono importanti per gestire il flusso corretto delle operazioni che l'LLM deve compiere.
+# Do not edit comments. They are important for managing the correct flow of tasks that the LLM has to do.
 
 import os
 import re
@@ -330,7 +330,7 @@ async def search_jobs_complete(
     }
 
     try:
-        # ── STEP 1: EXTRACT SKILLS ────────────────────────────────────────────
+        # STEP 1: EXTRACT SKILLS
         logger.info("A2A: STEP 1 - Extracting skills")
 
         skills_response = await call_skill_extractor_tool(cv_text, cv_filename)
@@ -350,12 +350,12 @@ async def search_jobs_complete(
             result["summary"] = "Nessuna competenza trovata nel CV. Impossibile cercare lavori."
             return json.dumps(result, indent=2, ensure_ascii=False)
 
-        # ── STEP 2: BUILD SEARCH QUERY ────────────────────────────────────────
+        # STEP 2: BUILD SEARCH QUERY
         logger.info("A2A: STEP 2 - Building query")
 
-        # Deprioritize generic tool/environment names that produce poor Adzuna results.
-        # These are valid skills but too broad or too specific to be useful as the
-        # primary keyword (e.g. "Jupyter Notebook" returns almost nothing on Adzuna).
+        # Deprioritize generic tool/environment names that produce poor Adzuna results. 
+        # These are valid skills but too broad or too specific to be useful as the primary keyword (e.g. "Jupyter Notebook" returns almost nothing on Adzuna).
+        # This section can be deleted, depending on the purpose of the project, I mainly used this for testing computer science CVs.
         LOW_PRIORITY_TERMS = {
             "jupyter notebook", "jupyter", "git", "github", "docker", "linux",
             "numpy", "pandas (python package)", "matplotlib", "seaborn",
@@ -378,7 +378,7 @@ async def search_jobs_complete(
         )
         logger.info(f"A2A: what='{primary_skill}' what_or='{secondary_skills}'")
 
-        # ── STEP 3: SEARCH JOBS ───────────────────────────────────────────────
+        # STEP 3: SEARCH JOBS
         logger.info("A2A: STEP 3 - Searching jobs")
 
         jobs_response = await call_job_matcher_tool(primary_skill, secondary_skills, country)
@@ -391,14 +391,13 @@ async def search_jobs_complete(
 
         logger.info(f"A2A: {len(jobs)} jobs found")
 
-        # ── STEP 4: GEOCODE + RENDER MAP ──────────────────────────────────────
+        # STEP 4: GEOCODE + RENDER MAP
         if include_map and jobs:
             logger.info("A2A: STEP 4 - Geocoding + rendering map")
             jobs = await enrich_jobs_with_coordinates(jobs, country)
 
-            # Stamp each job with its final row number (1-based, stable) so that
-            # Server3 can use it directly on the map marker. This guarantees that
-            # marker #6 on the map = row #6 in the table, always.
+            # Stamp each job with its final row number (1-based, stable) so that Server3 can use it directly on the map marker. 
+            # This guarantees that marker #6 on the map = row #6 in the table, always.
             for idx, job in enumerate(jobs, 1):
                 job["_row_number"] = idx
 
@@ -416,13 +415,12 @@ async def search_jobs_complete(
 
         result["jobs_found"] = jobs
 
-        # ── STEP 5: BUILD SUMMARY ─────────────────────────────────────────────
+        # STEP 5: BUILD SUMMARY
         logger.info("A2A: STEP 5 - Building summary")
 
         # Build the definitive map_jobs list: ALL jobs, numbered 1-N by row.
         # Jobs that are on the map have a marker with the same number.
-        # Jobs with location="Italia" (skipped from map) are shown in the table
-        # with their row number but without a map pin.
+        # Jobs with location="Country" (skipped from map) are shown in the table with their row number but without a map pin.
         mapped_numbers = {j["number"] for j in result.get("map_jobs", [])}  # e.g. {"2","4","6","7","8","A"}
         all_jobs_for_table = []
         for job in jobs:

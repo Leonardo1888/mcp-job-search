@@ -1,145 +1,145 @@
-# Ricerca del Lavoro Intelligente — MCP + A2A
+# Intelligent Job Search — MCP + A2A
 
-Sistema AI-powered per la ricerca automatizzata di offerte di lavoro a partire da un CV, sviluppato come progetto di tesi triennale in Ingegneria Informatica presso l'Università degli Studi di Bergamo.
+An AI-powered pipeline for automated job search from a CV, developed as a Bachelor's thesis project in Computer Engineering at the University of Bergamo.
 
-L'architettura si basa su due protocolli aperti e complementari: il [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) di Anthropic per la comunicazione tra l'LLM e i singoli strumenti, e il protocollo [Agent-to-Agent (A2A)](https://a2a-protocol.org/latest/) per il coordinamento tra agenti specializzati distinti. L'integrazione di entrambi è l'elemento architetturale distintivo rispetto ai sistemi di job matching esistenti.
+The architecture is built on two open and complementary protocols: Anthropic's [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) for communication between the LLM and individual tools, and the [Agent-to-Agent (A2A)](https://a2a-protocol.org/latest/) protocol for coordination between distinct specialised agents. The integration of both is the key architectural differentiator from existing job matching systems.
 
 ---
 
-## Architettura
+## Architecture
 
 ```
-Utente (linguaggio naturale)
+User (natural language)
         │
         ▼
-  OpenWebUI (LLM: GPT-4o / qualsiasi modello compatibile)
+  OpenWebUI (LLM: GPT-4o / any compatible model)
         │  OpenAPI
         ▼
      mcpo :8000
         │
-        ├──► JobSearchAgent-A2A.py   ←── Agente orchestratore (A2A client)
+        ├──► JobSearchAgent-A2A.py   ←── Orchestrator agent (A2A client)
         │           │
-        │           ├──► Server1-LC.py        →  Lightcast API   (estrazione skill, STDIO)
-        │           ├──► Server2-A.py         →  Adzuna API      (ricerca offerte, STDIO)
-        │           ├──► Nominatim API        →  Geocoding       (HTTP pubblico, no API key)
-        │           └──► Server3-Maps.py      →  Google Maps API (rendering mappa, Streamable HTTP)
-        │                  [remoto su Render.com]
+        │           ├──► Server1-LC.py        →  Lightcast API   (skill extraction, STDIO)
+        │           ├──► Server2-A.py         →  Adzuna API      (job search, STDIO)
+        │           ├──► Nominatim API        →  Geocoding       (public HTTP, no API key)
+        │           └──► Server3-Maps.py      →  Google Maps API (map rendering, Streamable HTTP)
+        │                  [remote on Render.com]
         │
-        ├──► Server1-LC.py   (accesso diretto dall'LLM per analisi standalone)
-        └──► Server2-A.py    (accesso diretto dall'LLM per ricerca standalone)
+        ├──► Server1-LC.py   (direct LLM access for standalone analysis)
+        └──► Server2-A.py    (direct LLM access for standalone search)
 ```
 
-### Flusso operativo completo (`search_jobs_complete`)
+### Full operational flow (`search_jobs_complete`)
 
-1. L'utente invia alla chat una richiesta in linguaggio naturale (es. *"analizza il mio CV e cercami lavori in Italia"*).
-2. L'LLM riconosce l'intenzione e invoca **un solo tool**: `search_jobs_complete` del `JobSearchAgent-A2A`, passando il testo del CV.
-3. Il `JobSearchAgent-A2A` apre una sessione MCP verso **SKILL-EXTRACTOR** (STDIO) e chiama `extract_skills_from_cv`.
-4. Le competenze estratte vengono normalizzate e usate per costruire la query; si apre una sessione MCP verso **JOB-MATCHER** (STDIO) e si chiama `search_jobs_by_skills`.
-5. Le offerte vengono arricchite con coordinate geografiche tramite geocoding **Nominatim** (concorrente via `asyncio.gather`).
-6. Il `JobSearchAgent-A2A` si connette al server remoto **JOB-MAP-RENDERER** (Streamable HTTP) su Render.com e chiama `render_jobs_map_by_coordinates`, ottenendo un URL Google Maps Static.
-7. Il risultato aggregato — skill estratte, lista offerte e URL della mappa — viene restituito all'LLM, che lo sintetizza e lo presenta in OpenWebUI (tabella Markdown + immagine mappa embedded).
+1. The user sends a natural language request to the chat (e.g. *"analyse my CV and find jobs in Italy"*).
+2. The LLM recognises the intent and invokes **a single tool**: `search_jobs_complete` on `JobSearchAgent-A2A`, passing the CV text.
+3. `JobSearchAgent-A2A` opens an MCP session to **SKILL-EXTRACTOR** (STDIO) and calls `extract_skills_from_cv`.
+4. The extracted skills are normalised and used to build the query; an MCP session is opened to **JOB-MATCHER** (STDIO) and `search_jobs_by_skills` is called.
+5. Job offers are enriched with geographic coordinates via **Nominatim** geocoding (concurrent via `asyncio.gather`).
+6. `JobSearchAgent-A2A` connects to the remote **JOB-MAP-RENDERER** server (Streamable HTTP) on Render.com and calls `render_jobs_map_by_coordinates`, obtaining a Google Maps Static URL.
+7. The aggregated result — extracted skills, job list and map URL — is returned to the LLM, which synthesises and presents it in OpenWebUI (Markdown table + embedded map image).
 
-Delegando tutta l'orchestrazione al `JobSearchAgent-A2A`, l'LLM opera come interprete dell'intenzione dell'utente e come formattatore della risposta finale — i due compiti in cui i modelli linguistici moderni eccellono — eliminando il rischio che salti passi o perda il contesto della pipeline multi-step.
+By delegating all orchestration to `JobSearchAgent-A2A`, the LLM acts as an interpreter of the user's intent and a formatter of the final response — the two tasks at which modern language models excel — eliminating the risk of skipping steps or losing context in a multi-step pipeline.
 
-### Protocolli e comunicazione
+### Protocols and communication
 
-| Connessione | Protocollo | Note |
+| Connection | Protocol | Notes |
 |---|---|---|
-| OpenWebUI → mcpo | OpenAPI REST | Porta 8000 |
-| mcpo → Server1, Server2, JobSearchAgent | MCP STDIO | Sottoprocessi Python |
-| mcpo → Server3 | MCP Streamable HTTP | Endpoint pubblico su Render.com |
-| JobSearchAgent → Server1, Server2 | MCP STDIO | Chiamate interne della pipeline A2A |
+| OpenWebUI → mcpo | OpenAPI REST | Port 8000 |
+| mcpo → Server1, Server2, JobSearchAgent | MCP STDIO | Python subprocesses |
+| mcpo → Server3 | MCP Streamable HTTP | Public endpoint on Render.com |
+| JobSearchAgent → Server1, Server2 | MCP STDIO | Internal A2A pipeline calls |
 | JobSearchAgent → Server3 | MCP Streamable HTTP | `mcp.client.streamable_http` |
-| JobSearchAgent → Nominatim | HTTP REST | Gratuito, nessuna API key richiesta |
+| JobSearchAgent → Nominatim | HTTP REST | Free, no API key required |
 
 ---
 
-## Struttura del progetto
+## Project structure
 
 ```
 mcp-job-search/
 ├── MCP-Servers/
-│   ├── Server1-LC.py           # SKILL-EXTRACTOR  — Lightcast Skills API (locale, STDIO)
-│   ├── Server2-A.py            # JOB-MATCHER      — Adzuna Jobs API (locale, STDIO)
-│   └── JobSearchAgent-A2A.py   # Agente A2A       — orchestratore pipeline completa
+│   ├── Server1-LC.py           # SKILL-EXTRACTOR  — Lightcast Skills API (local, STDIO)
+│   ├── Server2-A.py            # JOB-MATCHER      — Adzuna Jobs API (local, STDIO)
+│   └── JobSearchAgent-A2A.py   # A2A Agent        — full pipeline orchestrator
 ├── info/
-│   ├── cv.txt                  # CV dell'utente (input testuale, fallback)
-│   └── istruzioni.txt          # System prompt personalizzato per l'LLM
+│   ├── cv.txt                  # User CV (plain text input, fallback)
+│   └── istruzioni.txt          # Custom system prompt for the LLM
 ├── logs/
-│   ├── server1-lc.log          # Log SKILL-EXTRACTOR
-│   ├── server2-adzuna.log      # Log JOB-MATCHER
-│   └── job-search-agent-a2a.log # Log dell'agente A2A
-├── .env                        # Credenziali API (non committare mai)
+│   ├── server1-lc.log          # SKILL-EXTRACTOR logs
+│   ├── server2-adzuna.log      # JOB-MATCHER logs
+│   └── job-search-agent-a2a.log # A2A agent logs
+├── .env                        # API credentials (never commit)
 ├── .gitignore
-├── a2a_agents.json             # Registro descrittivo degli agenti A2A
-├── config.json                 # Configurazione mcpo (server locali + remoti)
-├── docker-compose.yml          # Container OpenWebUI
+├── a2a_agents.json             # Descriptive registry of A2A agents
+├── config.json                 # mcpo configuration (local + remote servers)
+├── docker-compose.yml          # OpenWebUI container
 └── requirements.txt
 ```
 
-Il server remoto `Server3-Maps.py` (JOB-MAP-RENDERER) è mantenuto in un repository separato e deployato su Render.com:
+The remote server `Server3-Maps.py` (JOB-MAP-RENDERER) is maintained in a separate repository and deployed on Render.com:
 - **Repository**: [github.com/Leonardo1888/mcp-google-maps](https://github.com/Leonardo1888/mcp-google-maps)
-- **Endpoint pubblico**: `https://mcp-google-maps.onrender.com/mcp`
+- **Public endpoint**: `https://mcp-google-maps.onrender.com/mcp`
 
-Il file `a2a_agents.json` nella root costituisce un registro descrittivo degli agenti del sistema (nome, descrizione, endpoint e protocollo di comunicazione) ed è utile come documentazione operativa dell'architettura A2A.
+The `a2a_agents.json` file in the root is a descriptive registry of the system's agents (name, description, endpoint and communication protocol) and serves as operational documentation of the A2A architecture.
 
 ---
 
-## Prerequisiti
+## Prerequisites
 
 - Python 3.11+
 - [uvx](https://docs.astral.sh/uv/) — `pip install uv`
 - Docker + Docker Compose
-- Credenziali API per Lightcast, Adzuna, Google Maps e OpenAI (vedi sezione Configurazione)
+- API credentials for Lightcast, Adzuna, Google Maps and OpenAI (see Configuration)
 
 ---
 
-## Installazione
+## Installation
 
 ```bash
-# 1. Clona il repository
+# 1. Clone the repository
 git clone https://github.com/Leonardo1888/mcp-job-search
 cd mcp-job-search
 
-# 2. Crea e attiva il virtual environment
+# 2. Create and activate the virtual environment
 python -m venv .venv
 source .venv/bin/activate        # Linux/macOS
 # .venv\Scripts\activate         # Windows
 
-# 3. Installa le dipendenze
+# 3. Install dependencies
 pip install -r requirements.txt
 ```
 
 ---
 
-## Configurazione
+## Configuration
 
-### File `.env`
+### `.env` file
 
-Crea un file `.env` nella root del progetto:
+Create a `.env` file in the project root:
 
 ```env
 # Lightcast API — https://lightcast.io/
-# Utilizzata per l'estrazione semantica delle competenze dal CV (OAuth2 Client Credentials)
+# Used for semantic skill extraction from the CV (OAuth2 Client Credentials)
 LIGHTCAST_CLIENT_ID=your_client_id
 LIGHTCAST_CLIENT_SECRET=your_client_secret
 
 # Adzuna API — https://developer.adzuna.com/
-# Utilizzata per la ricerca di offerte di lavoro aggregate da centinaia di fonti
+# Used to search job offers aggregated from hundreds of sources
 ADZUNA_APPLICATION_ID=your_app_id
 ADZUNA_APPLICATION_KEY=your_app_key
 
 # OpenAI API — https://platform.openai.com/
-# Utilizzata da OpenWebUI per accedere a GPT-4o (o qualsiasi modello compatibile)
+# Used by OpenWebUI to access GPT-4o (or any compatible model)
 OPENAI_API_KEY=your_openai_key
 
-# GOOGLE_MAPS_API_KEY — configurata solo sul server remoto Render.com (mcp-google-maps)
-# Non è necessaria in locale
+# GOOGLE_MAPS_API_KEY — configured only on the remote Render.com server (mcp-google-maps)
+# Not required locally
 ```
 
-> **Nota**: la `GOOGLE_MAPS_API_KEY` è memorizzata come variabile d'ambiente sul server di deploy Render.com e non va inclusa nel `.env` locale.
+> **Note**: `GOOGLE_MAPS_API_KEY` is stored as an environment variable on the Render.com deployment server and should not be included in the local `.env` file.
 
-### File `config.json` — configurazione mcpo
+### `config.json` — mcpo configuration
 
 ```json
 {
@@ -169,145 +169,145 @@ OPENAI_API_KEY=your_openai_key
 
 ---
 
-## Avvio del sistema
+## Running the stack
 
-### 1. Attiva il virtual environment
+### 1. Activate the virtual environment
 
 ```bash
 source .venv/bin/activate
 ```
 
-### 2. Avvia OpenWebUI (Docker)
+### 2. Start OpenWebUI (Docker)
 
 ```bash
 docker compose up -d
 
-# Per fermare:
+# Stop:
 docker compose down
 
-# Per visualizzare i log:
+# View logs:
 docker compose logs -f
 ```
 
-### 3. Avvia i server MCP tramite mcpo (porta 8000)
+### 3. Expose MCP servers via mcpo (port 8000)
 
 ```bash
 uvx mcpo --port 8000 --config config.json
 ```
 
-mcpo avvia come sottoprocessi tutti i server locali ed espone i loro tool come endpoint REST separati. Il server remoto JOB-MAP-RENDERER viene raggiunto direttamente tramite Streamable HTTP.
+mcpo starts all local servers as subprocesses and exposes their tools as separate REST endpoints. The remote JOB-MAP-RENDERER is reached directly via Streamable HTTP.
 
-| Server | Endpoint mcpo | Swagger UI |
+| Server | mcpo endpoint | Swagger UI |
 |---|---|---|
 | SKILL-EXTRACTOR | `http://localhost:8000/skill-extractor` | `http://localhost:8000/skill-extractor/docs` |
 | JOB-MATCHER | `http://localhost:8000/job-matcher` | `http://localhost:8000/job-matcher/docs` |
 | JOB-SEARCH-AGENT (A2A) | `http://localhost:8000/job-search-agent` | `http://localhost:8000/job-search-agent/docs` |
-| JOB-MAP-RENDERER | `https://mcp-google-maps.onrender.com/mcp` | *(remoto)* |
+| JOB-MAP-RENDERER | `https://mcp-google-maps.onrender.com/mcp` | *(remote)* |
 
-### 4. Accedi a OpenWebUI
+### 4. Open OpenWebUI
 
-Apri [http://localhost:3000](http://localhost:3000) nel browser.
+Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## Registrazione dei tool in OpenWebUI
+## Registering tools in OpenWebUI
 
-I server MCP devono essere registrati in OpenWebUI come **External Tools** tramite il pannello di amministrazione:
+MCP servers must be registered in OpenWebUI as **External Tools** via the admin panel:
 
 > OpenWebUI Admin Panel → Settings → External Tools → **+**
 
-Per ciascun server:
+For each server:
 
-| Campo | Valore |
+| Field | Value |
 |---|---|
 | Type | OpenAPI |
-| URL | `http://host.docker.internal:8000/<nome-server>` |
+| URL | `http://host.docker.internal:8000/<server-name>` |
 | OpenAPI Spec | `openapi.json` |
 | Auth | None |
 
-Dopo la registrazione, i tool sono visibili all'LLM e vengono invocati automaticamente quando la richiesta dell'utente lo richiede.
+Once registered, tools are visible to the LLM and invoked automatically when the user's request requires them.
 
 ---
 
-## Tool disponibili
+## Available tools
 
-### `JobSearchAgent-A2A` — Pipeline completa (punto di ingresso principale)
+### `JobSearchAgent-A2A` — Full pipeline (main entry point)
 
-| Tool | Descrizione |
+| Tool | Description |
 |---|---|
-| `search_jobs_complete` | Pipeline A2A completa: estrazione skill → ricerca offerte → geocoding → rendering mappa |
+| `search_jobs_complete` | Full A2A pipeline: skill extraction → job search → geocoding → map rendering |
 
-Questo è il tool principale del sistema. L'LLM invoca solo questo tool; è il `JobSearchAgent-A2A` a orchestrare autonomamente tutti i passi interni.
+This is the system's primary tool. The LLM invokes only this tool; `JobSearchAgent-A2A` autonomously orchestrates all internal steps.
 
-**Parametri**:
-- `cv_text` — testo integrale del CV (input primario, preferito quando visibile in chat)
-- `cv_filename` — nome del file `.txt` nella cartella `/info` (fallback)
-- `country` — codice ISO paese (default: `it`). Esempi: `gb`, `us`, `de`, `fr`
-- `include_map` — abilita il rendering della mappa (default: `true`)
+**Parameters**:
+- `cv_text` — full CV text as a string (primary input, preferred when visible in chat)
+- `cv_filename` — `.txt` file name inside the `/info` folder (fallback)
+- `country` — ISO 3166-1 alpha-2 country code (default: `it`). Examples: `gb`, `us`, `de`, `fr`
+- `include_map` — enables map rendering (default: `true`)
 
 **Output** (JSON):
-- `skills_extracted` — lista delle skill estratte dal CV
-- `jobs_found` — offerte di lavoro con coordinate geografiche (geocodificate dove mancanti)
-- `map_url` — URL immagine Google Maps Static (embed con `![Mappa offerte](<url>)`)
-- `map_jobs` — lista strutturata `{number, title, company, location, url}` per ogni offerta
-- `summary` — riepilogo testuale completo con lista numerata (il numero corrisponde al pin sulla mappa)
+- `skills_extracted` — list of skills found in the CV
+- `jobs_found` — job offers with geographic coordinates (geocoded where missing)
+- `map_url` — Google Maps Static image URL (embed with `![Job map](<url>)`)
+- `map_jobs` — structured list `{number, title, company, location, url}` for each offer
+- `summary` — full text recap with numbered list (the number corresponds to the map pin)
 
 ---
 
-### `SKILL-EXTRACTOR` — Estrazione competenze (Server1-LC.py)
+### `SKILL-EXTRACTOR` — Skill extraction (Server1-LC.py)
 
-Interfaccia con la **Lightcast Skills API**, che mantiene un database standardizzato di oltre 33.000 competenze classificate per categoria. Si autentica tramite OAuth2 Client Credentials e il token viene rinnovato automaticamente alla ricezione di un errore HTTP 401.
+Interfaces with the **Lightcast Skills API**, which maintains a standardised database of over 33,000 skills classified by category. Authenticates via OAuth2 Client Credentials; the token is automatically refreshed on HTTP 401.
 
-| Tool | Descrizione |
+| Tool | Description |
 |---|---|
-| `extract_skills_from_cv` | Estrae skill da un CV tramite Lightcast. Restituisce ID, nome, confidenza e categoria |
+| `extract_skills_from_cv` | Extracts skills from a CV via Lightcast. Returns ID, name, confidence score and category |
 
-> I tool `get_skill_details`, `find_related_skills_for_cv` e `analyze_cv_complete` sono presenti nel codice ma attualmente disabilitati (commentati). Possono essere riabilitati per scenari di analisi standalone del profilo.
+> The tools `get_skill_details`, `find_related_skills_for_cv` and `analyze_cv_complete` are present in the code but currently disabled (commented out). They can be re-enabled for standalone profile analysis scenarios.
 
-**Parametri di `extract_skills_from_cv`**:
-- `cv_text` — testo del CV come stringa (preferito)
-- `cv_filename` — file `.txt` nella cartella `/info` (fallback)
-- `confidence_threshold` — soglia minima di confidenza (default: `0.6`; abbassare a `0.4` se si ottengono troppo poche skill)
+**Parameters for `extract_skills_from_cv`**:
+- `cv_text` — CV text as a plain string (preferred)
+- `cv_filename` — `.txt` file in the `/info` folder (fallback)
+- `confidence_threshold` — minimum confidence score (default: `0.6`; lower to `0.4` if too few skills are returned)
 
 ---
 
-### `JOB-MATCHER` — Ricerca offerte (Server2-A.py)
+### `JOB-MATCHER` — Job search (Server2-A.py)
 
-Interfaccia con la **Adzuna Jobs API**, che aggrega offerte da centinaia di job board e siti aziendali. La scelta di Adzuna garantisce API ufficiali stabili e la presenza di coordinate geografiche nelle risposte, essenziali per la fase di visualizzazione mappa.
+Interfaces with the **Adzuna Jobs API**, which aggregates offers from hundreds of job boards and company websites. Adzuna's official API guarantees stability and includes geographic coordinates in responses, which are essential for the map rendering step.
 
-| Tool | Descrizione |
+| Tool | Description |
 |---|---|
-| `search_jobs_by_skills` | Ricerca primaria: una skill obbligatoria (`what`) + skill complementari (`what_or`) |
+| `search_jobs_by_skills` | Primary search: one mandatory skill (`what`) + complementary skills (`what_or`) |
 
-La strategia di ricerca segue una logica a due livelli: la skill con confidenza più alta diventa il parametro obbligatorio (`what`); le skill complementari formano un insieme alternativo (`what_or`), di cui almeno una deve essere presente nell'annuncio.
+The search strategy follows a two-level logic: the skill with the highest confidence becomes the mandatory parameter (`what`); complementary skills form an alternative set (`what_or`), at least one of which must appear in the listing.
 
-> Il tool `search_jobs_by_title` (ricerca per titolo professionale sintetizzato) è presente nel codice ma attualmente disabilitato. Può essere riabilitato come fallback quando `search_jobs_by_skills` restituisce 0 risultati.
+> The `search_jobs_by_title` tool (search by synthesised job title) is present in the code but currently disabled. It can be re-enabled as a fallback when `search_jobs_by_skills` returns 0 results.
 
 ---
 
-## Stack tecnologico
+## Tech stack
 
-| Componente | Tecnologia | Ruolo |
+| Component | Technology | Role |
 |---|---|---|
-| Interfaccia utente | OpenWebUI | Chat frontend, hosting locale dell'LLM |
-| Modello linguistico | GPT-4o (OpenAI API) o qualsiasi LLM compatibile | Interpretazione del linguaggio naturale e sintesi delle risposte |
-| Bridge MCP–HTTP | mcpo | Converte server MCP STDIO in endpoint OpenAPI REST |
-| Agente orchestratore | `JobSearchAgent-A2A.py` (FastMCP) | Pipeline A2A: coordina tutti i sotto-agenti |
-| Estrazione competenze | `Server1-LC.py` (FastMCP, locale) | Interfaccia con Lightcast Skills API via OAuth2 |
-| Ricerca offerte | `Server2-A.py` (FastMCP, locale) | Interfaccia con Adzuna Jobs API |
-| Rendering mappa | `Server3-Maps.py` (FastMCP, remoto) | Google Maps Static API; hostato su Render.com |
-| Geocoding | Nominatim (OpenStreetMap) | Conversione nomi città in coordinate; nessuna API key richiesta |
-| Container | Docker / Docker Compose | Deploy di OpenWebUI in locale |
+| User interface | OpenWebUI | Chat frontend, local LLM hosting |
+| Language model | GPT-4o (OpenAI API) or any compatible LLM | Natural language interpretation and response synthesis |
+| MCP–HTTP bridge | mcpo | Converts MCP STDIO servers to OpenAPI REST endpoints |
+| Orchestrator agent | `JobSearchAgent-A2A.py` (FastMCP) | A2A pipeline: coordinates all sub-agents |
+| Skill extraction | `Server1-LC.py` (FastMCP, local) | Lightcast Skills API interface via OAuth2 |
+| Job search | `Server2-A.py` (FastMCP, local) | Adzuna Jobs API interface |
+| Map rendering | `Server3-Maps.py` (FastMCP, remote) | Google Maps Static API; hosted on Render.com |
+| Geocoding | Nominatim (OpenStreetMap) | City name to coordinates conversion; no API key required |
+| Container | Docker / Docker Compose | Local OpenWebUI deployment |
 
 ---
 
-## Aggiungere un nuovo server MCP
+## Adding a new MCP server
 
-L'architettura è progettata per essere facilmente estendibile. L'aggiunta di un nuovo agente specializzato (es. ricerca su LinkedIn, revisione del CV) richiede solo tre operazioni:
+The architecture is designed for easy extensibility. Adding a new specialised agent (e.g. LinkedIn search, CV review) requires only three steps:
 
-1. Crea `MCP-Servers/ServerN-XX.py` seguendo la struttura degli esistenti.
+1. Create `MCP-Servers/ServerN-XX.py` following the structure of the existing servers.
 
-2. Aggiungi una voce in `config.json`:
+2. Add an entry to `config.json`:
 
 ```json
 "my-new-server": {
@@ -317,7 +317,7 @@ L'architettura è progettata per essere facilmente estendibile. L'aggiunta di un
 }
 ```
 
-3. Registra il nuovo endpoint in OpenWebUI:
+3. Register the new endpoint in OpenWebUI:
 
 ```
 Type: OpenAPI
@@ -326,22 +326,22 @@ OpenAPI Spec: openapi.json
 Auth: None
 ```
 
-Per integrare il nuovo agente nella pipeline A2A, aggiungi il suo endpoint in `JobSearchAgent-A2A.py` e registralo in `a2a_agents.json` — senza modificare nessun altro componente del sistema.
+To integrate the new agent into the A2A pipeline, add its endpoint in `JobSearchAgent-A2A.py` and register it in `a2a_agents.json` — without modifying any other component of the system.
 
 ---
 
-## Differenze rispetto ai sistemi esistenti
+## Differences from existing systems
 
-Il sistema si differenzia dai principali MCP server per la ricerca del lavoro esistenti (LinkedIn MCP Server, Indeed MCP Server ufficiale, JobSpy MCP Server) su tre aspetti:
+This system differentiates itself from the main existing MCP servers for job search (LinkedIn MCP Server, official Indeed MCP Server, JobSpy MCP Server) on three points:
 
-- **API ufficiali**: utilizza esclusivamente Lightcast e Adzuna tramite API stabili e autenticate, senza web scraping.
-- **Estrazione semantica delle competenze**: la ricerca parte dall'analisi del CV, non da keyword inserite manualmente dall'utente.
-- **Architettura ibrida MCP + A2A**: combina server locali e remoti tramite protocollo A2A, un approccio che nessuno dei sistemi esistenti adotta.
+- **Official APIs**: uses exclusively Lightcast and Adzuna via stable, authenticated APIs — no web scraping.
+- **Semantic skill extraction**: the search starts from CV analysis, not from keywords manually entered by the user.
+- **Hybrid MCP + A2A architecture**: combines local and remote servers via the A2A protocol, an approach that none of the existing systems adopts.
 
 ---
 
-## Limitazioni note
+## Known limitations
 
-- **Filtro seniority assente**: l'API Adzuna non espone un parametro dedicato; la ricerca per keyword restituisce offerte di qualsiasi livello di esperienza.
-- **Offerte in smart working**: le offerte che riportano come localizzazione solo il paese di sede vengono escluse dalla mappa (non georeferenziabili in modo significativo) ma rimangono visibili nella tabella testuale.
-- **Terminologia accademica**: per CV con nomenclatura prevalentemente accademica, Lightcast può estrarre termini con confidenza nella fascia 0.60–0.70 che non corrispondono alla nomenclatura usata negli annunci reali.
+- **No seniority filter**: the Adzuna API does not expose a dedicated parameter; keyword-based search returns offers at any experience level.
+- **Remote-work listings**: offers that report only the company's country as their location are excluded from the map (not meaningfully geocodable) but remain visible in the text table.
+- **Academic terminology**: for CVs with predominantly academic vocabulary, Lightcast may extract terms with confidence in the 0.60–0.70 range that do not match the nomenclature used in real job listings.
