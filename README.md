@@ -340,8 +340,3 @@ This system differentiates itself from the main existing MCP servers for job sea
 
 ---
 
-## Known limitations
-
-- **No seniority filter**: the Adzuna API does not expose a dedicated parameter; keyword-based search returns offers at any experience level.
-- **Remote-work listings**: offers that report only the company's country as their location are excluded from the map (not meaningfully geocodable) but remain visible in the text table.
-- **Academic terminology**: for CVs with predominantly academic vocabulary, Lightcast may extract terms with confidence in the 0.60–0.70 range that do not match the nomenclature used in real job listings.
